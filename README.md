@@ -1,51 +1,123 @@
 # Study Courses & Timetable for Super Productivity
 
-A semester-aware timetable plugin for [Super Productivity](https://github.com/johannesjo/super-productivity), designed for courses, teaching weeks, assignments, and calendar export.
+> 🎓 A semester-aware timetable and coursework management plugin for [Super Productivity](https://github.com/johannesjo/super-productivity).
 
-中文说明见下方。
+Manage university courses, teaching weeks, assignments, timetable imports, and calendar exports directly inside Super Productivity.
 
-## Features
+[English](#english) | [中文](#中文)
 
-- Manage semester name, first Monday, and total teaching weeks
-- Create courses with weekday, time, location, teacher, week range, and odd/even/custom week rules
+---
+
+## English
+
+### ✨ Features
+
+#### Semester management
+- Set semester name
+- Configure the first Monday of the semester
+- Set the total number of teaching weeks
 - Browse the timetable week by week
-- Import courses from CSV or an ordinary HTML table and skip duplicates
+
+#### Course management
+- Create courses with:
+  - Weekday
+  - Start and end time
+  - Location
+  - Teacher
+  - Start and end week
+  - Odd / even / custom week rules
+- Store course notes
+- Add optional Obsidian links
+
+#### Course import
+- Import courses from CSV
+- Import courses from ordinary HTML tables
+- Automatically skip duplicate courses
+- Includes a reusable CSV import template
+
+#### Assignments
+- Create assignment tasks directly in a selected Super Productivity project
+- Keep course-related work connected with your normal task workflow
+
+#### Calendar export
 - Export the timetable as an `.ics` calendar file
-- Create assignment tasks in a selected Super Productivity project
-- Store course notes and optional Obsidian links
-- English and Chinese translations that follow the SP language
-- Synced plugin storage for course data and display settings
+- Import the exported calendar into compatible calendar applications
 
-## Installation
+#### Integration
+- English and Chinese translations
+- Automatically follows the Super Productivity language
+- Uses synced plugin storage for course data and display settings
 
-1. Download `sp-study-courses.zip` from GitHub Releases.
-2. Open Super Productivity → Settings → Plugins.
-3. Import the ZIP file and restart Super Productivity if requested.
-4. Open **Courses & Timetable** from the plugin entry.
+---
 
-Requires Super Productivity **18.21.2 or later**.
+### 📦 Installation
 
-## CSV / HTML import
+1. Go to **GitHub Releases**.
+2. Download `sp-study-courses.zip`.
+3. Open Super Productivity.
+4. Go to:
 
-Start with [`course-import-template.csv`](course-import-template.csv). Supported Chinese headers include:
+   `Settings → Plugins`
+
+5. Import the ZIP file.
+6. Restart Super Productivity if requested.
+7. Open **Courses & Timetable** from the plugin entry.
+
+### Compatibility
+
+Requires:
+
+```text
+Super Productivity >= 18.21.2
+```
+
+---
+
+### 📥 CSV / HTML Import
+
+A CSV template is included:
+
+[`course-import-template.csv`](course-import-template.csv)
+
+Supported Chinese headers include:
 
 ```text
 课程名称,教师,地点,星期,开始时间,结束时间,开始周,结束周,周次模式,自定义周次,颜色,备注,Obsidian链接,项目
 ```
 
-Equivalent English headers are accepted. A course with the same name, weekday, start time, and end time as an existing course is skipped.
+Equivalent English headers are also accepted.
 
-## Data and permissions
+A course is treated as a duplicate and skipped when the following fields match an existing course:
 
-The plugin reads project names, creates an assignment only after the user submits its form, saves its own plugin data, and exports a user-requested ICS file. It does not delete Super Productivity tasks or projects.
+- Course name
+- Weekday
+- Start time
+- End time
 
-## 中文说明
+---
 
-该插件用于管理大学课程表、学期周次、单双周课程和课程作业，支持 CSV/HTML 导入与 ICS 日历导出，也可以把课程作业创建到指定的 SP 项目中。界面会跟随 SP 的中英文语言设置。
+### 🔐 Data & Permissions
 
-## Development and packaging
+The plugin:
 
-This is a dependency-free iframe plugin. Package these files with `manifest.json` at the ZIP root:
+- Reads Super Productivity project names
+- Creates assignment tasks only after user confirmation
+- Stores its own course data and display settings
+- Exports ICS files only when requested by the user
+
+The plugin does **not**:
+
+- Delete Super Productivity tasks
+- Delete projects
+- Modify unrelated task data
+
+---
+
+### 🛠 Development & Packaging
+
+This is a dependency-free iframe plugin.
+
+The release ZIP should contain the following files at its root:
 
 ```text
 manifest.json
@@ -56,10 +128,155 @@ i18n/
 course-import-template.csv
 ```
 
+Example packaging command:
+
 ```powershell
-Compress-Archive -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv -DestinationPath sp-study-courses.zip
+Compress-Archive `
+  -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv `
+  -DestinationPath sp-study-courses.zip
 ```
 
-## License
+---
+
+## 中文
+
+### ✨ 功能
+
+#### 学期管理
+- 设置学期名称
+- 设置学期第一周星期一
+- 设置总教学周数
+- 按周浏览课程表
+
+#### 课程管理
+支持为课程设置：
+
+- 星期
+- 上课时间
+- 上课地点
+- 教师
+- 起止周次
+- 单周 / 双周 / 自定义周次
+
+同时支持：
+
+- 课程备注
+- Obsidian 链接
+
+#### 课程导入
+- 支持 CSV 导入
+- 支持普通 HTML 表格导入
+- 自动跳过重复课程
+- 提供课程导入模板
+
+#### 课程作业
+- 可将课程作业创建为 Super Productivity 任务
+- 可选择作业所属的 SP 项目
+- 将课程管理与日常任务管理结合
+
+#### 日历导出
+- 支持导出 `.ics` 日历文件
+- 可导入兼容 ICS 的日历应用
+
+#### 集成
+- 支持中文和英文
+- 自动跟随 Super Productivity 的语言设置
+- 使用 SP 插件同步存储保存课程数据与显示设置
+
+---
+
+### 📦 安装
+
+1. 前往 GitHub **Releases**
+2. 下载：
+
+   `sp-study-courses.zip`
+
+3. 打开 Super Productivity
+4. 进入：
+
+   `设置 → 插件`
+
+5. 导入 ZIP 插件
+6. 如有提示，重启 Super Productivity
+7. 从插件入口打开 **Courses & Timetable**
+
+### 兼容性
+
+需要：
+
+```text
+Super Productivity >= 18.21.2
+```
+
+---
+
+### 📥 CSV / HTML 导入
+
+项目中提供：
+
+[`course-import-template.csv`](course-import-template.csv)
+
+支持的中文表头包括：
+
+```text
+课程名称,教师,地点,星期,开始时间,结束时间,开始周,结束周,周次模式,自定义周次,颜色,备注,Obsidian链接,项目
+```
+
+同时支持对应的英文表头。
+
+如果以下字段均与现有课程一致，则该课程会被视为重复课程并跳过：
+
+- 课程名称
+- 星期
+- 开始时间
+- 结束时间
+
+---
+
+### 🔐 数据与权限
+
+插件会：
+
+- 读取 Super Productivity 项目名称
+- 在用户确认后创建课程作业任务
+- 保存插件自身的课程数据与显示设置
+- 在用户主动操作时导出 ICS 文件
+
+插件不会：
+
+- 删除 Super Productivity 任务
+- 删除项目
+- 修改无关任务数据
+
+---
+
+### 🛠 开发与打包
+
+该插件为无外部依赖的 iframe 插件。
+
+发布 ZIP 根目录应包含：
+
+```text
+manifest.json
+plugin.js
+index.html
+icon.svg
+i18n/
+course-import-template.csv
+```
+
+打包示例：
+
+```powershell
+Compress-Archive `
+  -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv `
+  -DestinationPath sp-study-courses.zip
+```
+
+---
+
+## 📄 License
 
 [MIT](LICENSE)
+```
