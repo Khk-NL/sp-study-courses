@@ -1,0 +1,25 @@
+{
+  "name": "Courses & Timetable",
+  "id": "study-courses",
+  "manifestVersion": 1,
+  "version": "1.2.0",
+  "minSupVersion": "18.21.2",
+  "description": "Course, semester and week-aware timetable for students.",
+  "author": "SCSldr",
+  "hooks": ["languageChange", "persistedDataChanged"],
+  "permissions": [
+    "addTask",
+    "downloadFile",
+    "getAllProjects",
+    "persistDataSynced",
+    "loadSyncedData",
+    "showIndexHtmlAsView",
+    "showSnack"
+  ],
+  "i18n": { "languages": ["en", "zh"] },
+  "iFrame": true,
+  "sidePanel": false,
+  "type": "standard",
+  "assets": [],
+  "icon": "icon.svg"
+}

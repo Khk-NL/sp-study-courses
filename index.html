@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Courses & Timetable</title>
+    <style>
+      body { padding: var(--s3); }
+      .page { max-width: 1050px; margin: 0 auto; }
+      .toolbar, .actions, .week-nav, .course-head { display: flex; gap: var(--s); align-items: center; flex-wrap: wrap; }
+      .toolbar, .course-head { justify-content: space-between; }
+      .panel, .course, .class-card { border: 1px solid var(--divider-color); border-radius: 6px; padding: var(--s2); margin-bottom: var(--s2); }
+      .semester-grid, .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+      .week-grid { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap: var(--s); overflow-x: auto; }
+      .day { min-width: 120px; }
+      .day h3 { color: var(--text-color-muted); font-size: .9rem; }
+      .class-card { border-left: 5px solid var(--course-color); padding: var(--s); }
+      .class-time, .muted { color: var(--text-color-muted); font-size: .9rem; }
+      label { display: grid; gap: var(--s-half); }
+      input, select, textarea, button { font: inherit; }
+      input, select, textarea { box-sizing: border-box; width: 100%; padding: var(--s); color: inherit; background: var(--input-bg); border: 1px solid var(--divider-color); border-radius: 4px; }
+      button { cursor: pointer; }
+      .primary, .plain { border-radius: 4px; padding: var(--s-half) var(--s); }
+      .primary { border: 0; background: var(--c-accent); color: var(--text-color-most-intense); }
+      .plain { border: 1px solid var(--divider-color); background: transparent; color: inherit; }
+      dialog { color: var(--text-color); background: var(--bg); border: 1px solid var(--divider-color); border-radius: 8px; width: min(700px, calc(100vw - 32px)); }
+      dialog form { display: grid; gap: var(--s2); }
+      .empty { color: var(--text-color-muted); text-align: center; padding: var(--s3); }
+      .primary { background: var(--plugin-accent, var(--c-accent)); }
+      body[data-density="compact"] { --s3: 16px; --s2: 10px; --s: 6px; }
+      .hidden-input { display: none; }
+      @media (max-width: 680px) { .semester-grid, .form-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="toolbar"><h1 data-i18n="UI.TITLE">Courses & Timetable</h1><div class="actions"><button id="settings" class="plain" data-i18n="UI.SETTINGS">Settings</button><button id="import" class="plain" data-i18n="UI.IMPORT">Import CSV / HTML</button><button id="export" class="plain" data-i18n="UI.EXPORT_ICS">Export timetable</button><button id="add" class="primary" data-i18n="UI.ADD_COURSE">Add course</button></div></div>
+      <input id="import-file" class="hidden-input" type="file" accept=".csv,.html,.htm,text/csv,text/html" />
+      <section class="panel">
+        <h2 data-i18n="UI.SEMESTER">Semester</h2>
+        <div class="semester-grid">
+          <label><span data-i18n="UI.SEMESTER_NAME">Semester name</span><input id="semester-name" /></label>
+          <label><span data-i18n="UI.START_DATE">First Monday</span><input id="semester-start" type="date" /></label>
+          <label><span data-i18n="UI.WEEKS">Weeks</span><input id="semester-weeks" type="number" min="1" max="40" value="18" /></label>
+        </div>
+        <div class="actions"><button id="save-semester" class="plain" data-i18n="UI.SAVE_SEMESTER">Save semester</button></div>
+      </section>
+      <div class="week-nav"><button id="prev" class="plain" data-i18n="UI.PREVIOUS">Previous</button><strong id="week-label"></strong><button id="next" class="plain" data-i18n="UI.NEXT">Next</button></div>
+      <section id="timetable" class="week-grid"></section>
+      <section><h2 data-i18n="UI.COURSES">Courses</h2><div id="courses"></div></section>
+    </main>
+
+    <dialog id="course-dialog">
+      <form id="course-form">
+        <input id="course-id" type="hidden" />
+        <div class="form-grid">
+          <label><span data-i18n="UI.COURSE_NAME">Course name</span><input id="course-name" required maxlength="160" /></label>
+          <label><span data-i18n="UI.TEACHER">Teacher</span><input id="teacher" maxlength="120" /></label>
+          <label><span data-i18n="UI.LOCATION">Location</span><input id="location" maxlength="120" /></label>
+          <label><span data-i18n="UI.WEEKDAY">Weekday</span><select id="weekday"></select></label>
+          <label><span data-i18n="UI.START_TIME">Start time</span><input id="start-time" type="time" required /></label>
+          <label><span data-i18n="UI.END_TIME">End time</span><input id="end-time" type="time" required /></label>
+          <label><span data-i18n="UI.START_WEEK">Start week</span><input id="start-week" type="number" min="1" value="1" required /></label>
+          <label><span data-i18n="UI.END_WEEK">End week</span><input id="end-week" type="number" min="1" value="18" required /></label>
+          <label><span data-i18n="UI.PATTERN">Week pattern</span><select id="pattern"></select></label>
+          <label><span data-i18n="UI.CUSTOM_WEEKS">Custom weeks</span><input id="custom-weeks" placeholder="1,3,5" /></label>
+          <label><span data-i18n="UI.COLOR">Color</span><input id="color" type="color" value="#3f51b5" /></label>
+          <label><span data-i18n="UI.PROJECT">Assignment project</span><select id="project"></select></label>
+        </div>
+        <label><span data-i18n="UI.NOTE">Note</span><textarea id="note" rows="3"></textarea></label>
+        <label><span data-i18n="UI.OBSIDIAN_LINK">Obsidian link</span><input id="obsidian-link" placeholder="obsidian://open?..." /></label>
+        <div class="actions"><button id="course-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="assignment-dialog">
+      <form id="assignment-form">
+        <input id="assignment-course-id" type="hidden" />
+        <label><span data-i18n="UI.ASSIGNMENT_TITLE">Assignment title</span><input id="assignment-title" required /></label>
+        <label><span data-i18n="UI.DUE_DAY">Due date</span><input id="assignment-due" type="date" /></label>
+        <label><span data-i18n="UI.ESTIMATE">Estimate</span><input id="assignment-estimate" type="number" min="0" step="5" value="60" /></label>
+        <div class="actions"><button id="assignment-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.ADD_ASSIGNMENT">Add assignment</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="settings-dialog">
+      <form id="settings-form">
+        <label><span data-i18n="UI.DENSITY">Layout density</span><select id="settings-density"><option value="comfortable" data-i18n="UI.COMFORTABLE">Comfortable</option><option value="compact" data-i18n="UI.COMPACT">Compact</option></select></label>
+        <label><span data-i18n="UI.ACCENT">Accent color</span><select id="settings-accent"><option value="theme" data-i18n="UI.FOLLOW_THEME">Follow SP theme</option><option value="cyan" data-i18n="UI.CYAN">Rhodes cyan</option></select></label>
+        <label><input id="settings-weekends" type="checkbox" /><span data-i18n="UI.SHOW_WEEKENDS">Show weekends</span></label>
+        <div class="actions"><button id="settings-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
+      </form>
+    </dialog>
+
+    <script>
+      let state = { version: 1, semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [] };
+      let settings = { density: 'comfortable', accent: 'theme', showWeekends: true };
+      let projects = [];
+      let selectedWeek = 1;
+      const $ = (id) => document.getElementById(id);
+      const tr = (key, params) => PluginAPI.translate(key, params);
+      const esc = (value) => { const e = document.createElement('div'); e.textContent = value || ''; return e.innerHTML; };
+      const uid = () => crypto.randomUUID();
+
+      async function load() {
+        const raw = await PluginAPI.loadSyncedData('courses');
+        if (raw) {
+          try { state = { ...state, ...JSON.parse(raw) }; } catch (error) { console.error(error); }
+        }
+        const settingsRaw = await PluginAPI.loadSyncedData('ui-settings');
+        if (settingsRaw) {
+          try { settings = { ...settings, ...JSON.parse(settingsRaw) }; } catch (error) { console.error(error); }
+        }
+        projects = await PluginAPI.getAllProjects();
+        if (state.semester.startDate) {
+          selectedWeek = Math.max(1, Math.min(state.semester.weeks, Math.floor((Date.now() - new Date(`${state.semester.startDate}T00:00:00`).getTime()) / 604800000) + 1));
+        }
+      }
+      const save = () => PluginAPI.persistDataSynced(JSON.stringify(state), 'courses');
+      const saveSettings = () => PluginAPI.persistDataSynced(JSON.stringify(settings), 'ui-settings');
+      const applySettings = () => {
+        document.body.dataset.density = settings.density;
+        document.body.style.setProperty('--plugin-accent', settings.accent === 'cyan' ? '#16b9d4' : 'var(--c-accent)');
+      };
+      const isActive = (course, week) => {
+        if (week < course.startWeek || week > course.endWeek) return false;
+        if (course.pattern === 'odd') return week % 2 === 1;
+        if (course.pattern === 'even') return week % 2 === 0;
+        if (course.pattern === 'custom') return course.customWeeks.includes(week);
+        return true;
+      };
+
+      async function applyTranslations() {
+        await Promise.all(Array.from(document.querySelectorAll('[data-i18n]')).map(async (node) => { node.textContent = await tr(node.dataset.i18n); }));
+        $('weekday').innerHTML = (await Promise.all([1,2,3,4,5,6,7].map(async (day) => `<option value="${day}">${esc(await tr(`DAY.${day}`))}</option>`))).join('');
+        $('pattern').innerHTML = (await Promise.all(['every','odd','even','custom'].map(async (pattern) => `<option value="${pattern}">${esc(await tr(`UI.${pattern.toUpperCase()}`))}</option>`))).join('');
+        $('project').innerHTML = `<option value="">${esc(await tr('UI.NONE'))}</option>` + projects.map((p) => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+      }
+
+      async function render() {
+        $('semester-name').value = state.semester.name || '';
+        $('semester-start').value = state.semester.startDate || '';
+        $('semester-weeks').value = state.semester.weeks || 18;
+        $('week-label').textContent = await tr('UI.WEEK', { count: selectedWeek });
+        $('prev').disabled = selectedWeek <= 1;
+        $('next').disabled = selectedWeek >= state.semester.weeks;
+        let weekHtml = '';
+        for (let day = 1; day <= (settings.showWeekends ? 7 : 5); day++) {
+          const active = state.courses.filter((course) => Number(course.weekday) === day && isActive(course, selectedWeek)).sort((a, b) => a.startTime.localeCompare(b.startTime));
+          weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3>${active.length ? active.map((course) => `<div class="class-card" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`;
+        }
+        $('timetable').innerHTML = weekHtml;
+        if (!state.courses.length) {
+          $('courses').innerHTML = `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`;
+          return;
+        }
+        $('courses').innerHTML = (await Promise.all(state.courses.map(async (course) => `<article class="course"><div class="course-head"><div><strong>${esc(course.name)}</strong><div class="muted">${esc(await tr(`DAY.${course.weekday}`))} ${esc(course.startTime)}–${esc(course.endTime)} · ${esc(course.location)} · ${esc(course.teacher)}</div></div><div class="actions"><button class="plain" data-action="assignment" data-id="${esc(course.id)}">${esc(await tr('UI.ADD_ASSIGNMENT'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><button class="plain" data-action="delete" data-id="${esc(course.id)}">${esc(await tr('UI.DELETE'))}</button></div></div>${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">Obsidian</a>` : ''}</article>`))).join('');
+      }
+
+      function openCourse(course) {
+        $('course-id').value = course?.id || '';
+        $('course-name').value = course?.name || '';
+        $('teacher').value = course?.teacher || '';
+        $('location').value = course?.location || '';
+        $('weekday').value = course?.weekday || '1';
+        $('start-time').value = course?.startTime || '08:00';
+        $('end-time').value = course?.endTime || '09:40';
+        $('start-week').value = course?.startWeek || 1;
+        $('end-week').value = course?.endWeek || state.semester.weeks;
+        $('pattern').value = course?.pattern || 'every';
+        $('custom-weeks').value = course?.customWeeks?.join(',') || '';
+        $('color').value = course?.color || '#3f51b5';
+        $('project').value = course?.projectId || '';
+        $('note').value = course?.note || '';
+        $('obsidian-link').value = course?.obsidianLink || '';
+        $('course-dialog').showModal();
+      }
+
+      $('add').onclick = () => openCourse();
+      $('settings').onclick = () => {
+        $('settings-density').value = settings.density;
+        $('settings-accent').value = settings.accent;
+        $('settings-weekends').checked = settings.showWeekends;
+        $('settings-dialog').showModal();
+      };
+      $('settings-cancel').onclick = () => $('settings-dialog').close();
+      $('settings-form').onsubmit = async (event) => {
+        event.preventDefault();
+        settings = { density: $('settings-density').value, accent: $('settings-accent').value, showWeekends: $('settings-weekends').checked };
+        await saveSettings();
+        applySettings();
+        $('settings-dialog').close();
+        await render();
+        PluginAPI.showSnack({ msg: await tr('UI.SETTINGS_SAVED'), type: 'SUCCESS' });
+      };
+      $('course-cancel').onclick = () => $('course-dialog').close();
+      $('assignment-cancel').onclick = () => $('assignment-dialog').close();
+      $('prev').onclick = async () => { selectedWeek--; await render(); };
+      $('next').onclick = async () => { selectedWeek++; await render(); };
+      $('save-semester').onclick = async () => {
+        state.semester = { name: $('semester-name').value.trim(), startDate: $('semester-start').value, weeks: Number($('semester-weeks').value) || 18 };
+        selectedWeek = Math.min(selectedWeek, state.semester.weeks);
+        await save(); await render();
+      };
+      $('course-form').onsubmit = async (event) => {
+        event.preventDefault();
+        const old = state.courses.find((course) => course.id === $('course-id').value);
+        const course = {
+          id: old?.id || uid(), name: $('course-name').value.trim(), teacher: $('teacher').value.trim(), location: $('location').value.trim(),
+          weekday: Number($('weekday').value), startTime: $('start-time').value, endTime: $('end-time').value,
+          startWeek: Number($('start-week').value), endWeek: Number($('end-week').value), pattern: $('pattern').value,
+          customWeeks: $('custom-weeks').value.split(',').map(Number).filter(Number.isInteger), color: $('color').value,
+          projectId: $('project').value || null, note: $('note').value.trim(), obsidianLink: $('obsidian-link').value.trim() || null,
+        };
+        state.courses = old ? state.courses.map((entry) => entry.id === course.id ? course : entry) : [...state.courses, course];
+        await save(); $('course-dialog').close(); await render();
+        PluginAPI.showSnack({ msg: await tr('UI.SAVED'), type: 'SUCCESS' });
+      };
+      $('courses').onclick = async (event) => {
+        const button = event.target.closest('[data-action]'); if (!button) return;
+        const course = state.courses.find((entry) => entry.id === button.dataset.id); if (!course) return;
+        if (button.dataset.action === 'edit') return openCourse(course);
+        if (button.dataset.action === 'assignment') { $('assignment-course-id').value = course.id; $('assignment-title').value = ''; $('assignment-due').value = ''; $('assignment-dialog').showModal(); return; }
+        if (button.dataset.action === 'delete' && confirm(await tr('UI.CONFIRM_DELETE'))) { state.courses = state.courses.filter((entry) => entry.id !== course.id); await save(); await render(); }
+      };
+      $('assignment-form').onsubmit = async (event) => {
+        event.preventDefault();
+        const course = state.courses.find((entry) => entry.id === $('assignment-course-id').value); if (!course) return;
+        const taskId = await PluginAPI.addTask({ title: `[${course.name}] ${$('assignment-title').value.trim()}`, projectId: course.projectId, notes: `Course: ${course.name}\nCourse ID: ${course.id}`, dueDay: $('assignment-due').value || null, timeEstimate: (Number($('assignment-estimate').value) || 0) * 60000 });
+        state.assignments.push({ taskId, courseId: course.id });
+        await save(); $('assignment-dialog').close();
+        PluginAPI.showSnack({ msg: await tr('UI.CREATED'), type: 'SUCCESS' });
+      };
+
+      const headerAliases = {
+        name: ['name', 'course', 'course name', '课程', '课程名称'], teacher: ['teacher', '教师', '老师'], location: ['location', 'room', '地点', '教室'],
+        weekday: ['weekday', 'day', '星期', '周几'], startTime: ['starttime', 'start time', '开始时间'], endTime: ['endtime', 'end time', '结束时间'],
+        startWeek: ['startweek', 'start week', '开始周'], endWeek: ['endweek', 'end week', '结束周'], pattern: ['pattern', 'week pattern', '周次模式', '单双周'],
+        customWeeks: ['customweeks', 'custom weeks', '自定义周次'], color: ['color', '颜色'], note: ['note', '备注'], obsidianLink: ['obsidianlink', 'obsidian link', 'obsidian链接'], project: ['project', '项目'],
+      };
+      const normalizeHeader = (value) => String(value || '').trim().toLowerCase().replace(/[_-]/g, ' ');
+      function fieldForHeader(header) {
+        const normalized = normalizeHeader(header);
+        return Object.entries(headerAliases).find(([, aliases]) => aliases.includes(normalized))?.[0] || null;
+      }
+      function parseCsv(text) {
+        const rows = [];
+        let row = [], field = '', quoted = false;
+        for (let index = 0; index < text.length; index++) {
+          const char = text[index];
+          if (quoted && char === '"' && text[index + 1] === '"') { field += '"'; index++; }
+          else if (char === '"') quoted = !quoted;
+          else if (!quoted && char === ',') { row.push(field); field = ''; }
+          else if (!quoted && (char === '\n' || char === '\r')) {
+            if (char === '\r' && text[index + 1] === '\n') index++;
+            row.push(field); field = '';
+            if (row.some((cell) => cell.trim())) rows.push(row);
+            row = [];
+          } else field += char;
+        }
+        row.push(field); if (row.some((cell) => cell.trim())) rows.push(row);
+        return rows;
+      }
+      function parseHtml(text) {
+        const doc = new DOMParser().parseFromString(text, 'text/html');
+        return Array.from(doc.querySelectorAll('table tr')).map((row) => Array.from(row.querySelectorAll('th,td')).map((cell) => cell.textContent.trim())).filter((row) => row.length);
+      }
+      function weekdayNumber(value) {
+        const text = String(value || '').trim().toLowerCase();
+        const names = { monday: 1, mon: 1, '周一': 1, '星期一': 1, tuesday: 2, tue: 2, '周二': 2, '星期二': 2, wednesday: 3, wed: 3, '周三': 3, '星期三': 3, thursday: 4, thu: 4, '周四': 4, '星期四': 4, friday: 5, fri: 5, '周五': 5, '星期五': 5, saturday: 6, sat: 6, '周六': 6, '星期六': 6, sunday: 7, sun: 7, '周日': 7, '星期日': 7 };
+        return names[text] || Math.max(1, Math.min(7, Number(text) || 1));
+      }
+      function normalizePattern(value) {
+        const text = String(value || '').trim().toLowerCase();
+        if (['odd', '单周', '单'].includes(text)) return 'odd';
+        if (['even', '双周', '双'].includes(text)) return 'even';
+        if (['custom', '自定义'].includes(text)) return 'custom';
+        return 'every';
+      }
+      function rowsToCourses(rows) {
+        if (rows.length < 2) return [];
+        const fields = rows[0].map(fieldForHeader);
+        if (!fields.includes('name')) return [];
+        return rows.slice(1).map((row) => {
+          const source = {}; fields.forEach((field, index) => { if (field) source[field] = row[index] || ''; });
+          const project = projects.find((item) => item.title.toLowerCase() === String(source.project || '').trim().toLowerCase());
+          return {
+            id: uid(), name: String(source.name || '').trim(), teacher: String(source.teacher || '').trim(), location: String(source.location || '').trim(),
+            weekday: weekdayNumber(source.weekday), startTime: String(source.startTime || '08:00').trim(), endTime: String(source.endTime || '09:40').trim(),
+            startWeek: Number(source.startWeek) || 1, endWeek: Number(source.endWeek) || state.semester.weeks, pattern: normalizePattern(source.pattern),
+            customWeeks: String(source.customWeeks || '').split(/[,，\s]+/).map(Number).filter(Number.isInteger), color: /^#[0-9a-f]{6}$/i.test(source.color) ? source.color : '#3f51b5',
+            projectId: project?.id || null, note: String(source.note || '').trim(), obsidianLink: String(source.obsidianLink || '').trim() || null,
+          };
+        }).filter((course) => course.name);
+      }
+      $('import').onclick = () => $('import-file').click();
+      $('import-file').onchange = async () => {
+        const file = $('import-file').files[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const rows = /\.html?$/i.test(file.name) ? parseHtml(text) : parseCsv(text);
+          const imported = rowsToCourses(rows);
+          if (!imported.length) { PluginAPI.showSnack({ msg: await tr('UI.IMPORT_EMPTY'), type: 'ERROR' }); return; }
+          if (!confirm(await tr('UI.IMPORT_CONFIRM', { count: imported.length }))) return;
+          const fingerprints = new Set(state.courses.map((course) => `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
+          const additions = imported.filter((course) => !fingerprints.has(`${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
+          state.courses.push(...additions);
+          await save(); await render();
+          PluginAPI.showSnack({ msg: await tr('UI.IMPORTED', { count: additions.length }), type: 'SUCCESS' });
+        } catch (error) {
+          console.error(error);
+          PluginAPI.showSnack({ msg: await tr('UI.IMPORT_EMPTY'), type: 'ERROR' });
+        } finally {
+          $('import-file').value = '';
+        }
+      };
+
+      function pad(value) { return String(value).padStart(2, '0'); }
+      function icsDate(date) { return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`; }
+      $('export').onclick = async () => {
+        if (!state.semester.startDate) return;
+        const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Super Productivity//Study Courses//EN'];
+        for (const course of state.courses) for (let week = course.startWeek; week <= course.endWeek; week++) if (isActive(course, week)) {
+          const base = new Date(`${state.semester.startDate}T00:00:00`); base.setDate(base.getDate() + (week - 1) * 7 + course.weekday - 1);
+          const start = new Date(base); const [sh, sm] = course.startTime.split(':').map(Number); start.setHours(sh, sm);
+          const end = new Date(base); const [eh, em] = course.endTime.split(':').map(Number); end.setHours(eh, em);
+          lines.push('BEGIN:VEVENT', `UID:${course.id}-${week}@super-productivity`, `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`, `SUMMARY:${course.name.replace(/[,;]/g, ' ')}`, `LOCATION:${course.location.replace(/[,;]/g, ' ')}`, 'END:VEVENT');
+        }
+        lines.push('END:VCALENDAR');
+        const filename = `${state.semester.name || 'timetable'}.ics`.replace(/[<>:"/\\|?*]/g, '_');
+        window.parent.postMessage({ source: 'sp-study-courses', type: 'DOWNLOAD_ICS', filename, data: lines.join('\r\n') }, '*');
+      };
+
+      async function init() { await load(); applySettings(); await applyTranslations(); await render(); }
+      PluginAPI.registerHook(PluginAPI.Hooks.LANGUAGE_CHANGE, async () => { await applyTranslations(); await render(); });
+      PluginAPI.registerHook(PluginAPI.Hooks.PERSISTED_DATA_CHANGED, init);
+      init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "PLUGIN": { "NAME": "Courses & Timetable", "DESCRIPTION": "Course, semester and week-aware timetable for students." },
+  "SHORTCUT": { "OPEN": "Open Courses & Timetable" },
+  "UI": {
+    "TITLE": "Courses & Timetable", "COURSES": "Courses", "SEMESTER": "Semester", "SEMESTER_NAME": "Semester name", "START_DATE": "First Monday", "WEEKS": "Weeks", "SAVE_SEMESTER": "Save semester",
+    "WEEK": "Week", "PREVIOUS": "Previous", "NEXT": "Next", "ADD_COURSE": "Add course", "IMPORT": "Import CSV / HTML", "EXPORT_ICS": "Export timetable (.ics)", "NO_CLASSES": "No classes this week.",
+    "COURSE_NAME": "Course name", "TEACHER": "Teacher", "LOCATION": "Location", "WEEKDAY": "Weekday", "START_TIME": "Start time", "END_TIME": "End time", "START_WEEK": "Start week", "END_WEEK": "End week", "PATTERN": "Week pattern", "CUSTOM_WEEKS": "Custom weeks (comma separated)", "COLOR": "Color", "NOTE": "Note", "OBSIDIAN_LINK": "Obsidian link", "PROJECT": "Assignment project", "NONE": "None",
+    "EVERY": "Every week", "ODD": "Odd weeks", "EVEN": "Even weeks", "CUSTOM": "Custom weeks", "SAVE": "Save", "CANCEL": "Cancel", "EDIT": "Edit", "DELETE": "Delete", "ADD_ASSIGNMENT": "Add assignment", "ASSIGNMENT_TITLE": "Assignment title", "DUE_DAY": "Due date", "ESTIMATE": "Estimate (minutes)", "CREATED": "Assignment task created", "SAVED": "Course saved", "CONFIRM_DELETE": "Delete this course?", "IMPORT_CONFIRM": "Import {{count}} courses? Existing duplicates will be skipped.", "IMPORTED": "Imported {{count}} courses", "IMPORT_EMPTY": "No recognizable course rows were found.", "SETTINGS": "Settings", "DENSITY": "Layout density", "COMFORTABLE": "Comfortable", "COMPACT": "Compact", "ACCENT": "Accent color", "FOLLOW_THEME": "Follow SP theme", "CYAN": "Rhodes cyan", "SHOW_WEEKENDS": "Show weekends", "SETTINGS_SAVED": "Settings saved"
+  },
+  "DAY": { "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday", "7": "Sunday" }
+}
