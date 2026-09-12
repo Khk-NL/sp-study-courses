@@ -1,0 +1,12 @@
+{
+  "PLUGIN": { "NAME": "课程与课表", "DESCRIPTION": "适合学生的课程、学期与周次课表。" },
+  "SHORTCUT": { "OPEN": "打开课程与课表" },
+  "UI": {
+    "TITLE": "课程与课表", "COURSES": "课程列表", "SEMESTER": "学期", "SEMESTER_NAME": "学期名称", "START_DATE": "第一周周一", "WEEKS": "总周数", "SAVE_SEMESTER": "保存学期",
+    "WEEK": "第 {{count}} 周", "PREVIOUS": "上一周", "NEXT": "下一周", "ADD_COURSE": "添加课程", "IMPORT": "导入 CSV / HTML", "EXPORT_ICS": "导出课表（.ics）", "SYNC_ALL": "同步到计划", "SYNC": "同步", "NO_CLASSES": "本周没有课程。",
+    "CURRENT": "现在：{{name}}（{{time}}）", "FREE_NOW": "当前没有课", "NEXT_CLASS": "下一节：{{name}}，{{time}}", "NO_NEXT": "本学期没有后续课程", "SINCE_START": "距离上课还有 {{minutes}} 分钟", "UNTIL_END": "距离下课还有 {{minutes}} 分钟", "SYNCED": "计划已同步", "SYNC_UNSUPPORTED": "当前 SP 版本不支持更新已有任务。",
+    "CURRENT_SEMESTER": "当前学期", "NEW_SEMESTER": "新建学期", "NEW_SEMESTER_NAME": "请输入学期名称", "CLEAR_SEMESTER": "清空当前学期课表", "CONFIRM_CLEAR_SEMESTER": "确定清空当前学期的课程和作业吗？", "COURSE_NAME": "课程名称", "TEACHER": "教师", "LOCATION": "地点", "WEEKDAY": "星期", "START_TIME": "开始时间", "END_TIME": "结束时间", "START_WEEK": "开始周", "END_WEEK": "结束周", "PATTERN": "周次模式", "CUSTOM_WEEKS": "自定义周次（逗号分隔）", "COLOR": "颜色", "NOTE": "备注", "OBSIDIAN_LINK": "Obsidian 链接", "PROJECT": "作业所属项目", "NONE": "无",
+    "EVERY": "每周", "ODD": "单周", "EVEN": "双周", "CUSTOM": "自定义周次", "SAVE": "保存", "CANCEL": "取消", "EDIT": "编辑", "DELETE": "删除", "ADD_ASSIGNMENT": "添加作业", "ASSIGNMENT_TITLE": "作业标题", "DUE_DAY": "截止日期", "ESTIMATE": "预计耗时（分钟）", "CREATED": "作业任务已创建", "SAVED": "课程已保存", "CONFIRM_DELETE": "删除这门课程？", "IMPORT_CONFIRM": "识别到 {{count}} 门课程，其中自动修正 {{corrected}} 门、跳过无效数据 {{skipped}} 门。确认导入吗？已有重复课程也会跳过。", "IMPORTED": "已导入 {{count}} 门课程", "IMPORT_EMPTY": "没有识别到有效的课程行。", "SETTINGS": "设置", "DENSITY": "界面密度", "COMFORTABLE": "舒适", "COMPACT": "紧凑", "LANGUAGE": "插件语言", "LANGUAGE_AUTO": "跟随 SP 语言", "ACCENT": "卡片强调色", "FOLLOW_THEME": "跟随 SP 主题", "BLUE": "蓝色", "GREEN": "绿色", "ORANGE": "橙色", "PURPLE": "紫色", "CUSTOM_COLOR": "自定义", "CUSTOM_COLOR_VALUE": "自定义卡片颜色", "SHOW_WEEKENDS": "显示周末", "SETTINGS_SAVED": "设置已保存"
+  },
+  "DAY": { "1": "周一", "2": "周二", "3": "周三", "4": "周四", "5": "周五", "6": "周六", "7": "周日" }
+}

@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Courses & Timetable</title>
+    <style>
+      body { padding: var(--s3); }
+      .page { max-width: 1050px; margin: 0 auto; }
+      .toolbar, .actions, .week-nav, .course-head { display: flex; gap: var(--s); align-items: center; flex-wrap: wrap; }
+      .toolbar, .course-head { justify-content: space-between; }
+      .panel, .course, .class-card { border: 1px solid var(--divider-color); border-radius: 6px; padding: var(--s2); margin-bottom: var(--s2); }
+      .semester-grid, .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+      .week-grid { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: var(--s); overflow-x: auto; }
+      .week-grid.with-time-axis { grid-template-columns: 42px repeat(var(--day-count), minmax(120px, 1fr)); }
+      .day { min-width: 120px; }
+      .day h3 { color: var(--text-color-muted); font-size: .9rem; }
+      .class-card { border-left: 5px solid var(--course-color); padding: var(--s); }
+      .timeline { position: relative; min-height: 900px; border-top: 1px solid var(--divider-color); background: repeating-linear-gradient(to bottom, transparent 0, transparent 59px, var(--divider-color) 60px); }
+      .timeline-hours { position: relative; height: 900px; color: var(--text-color-muted); font-size: .72rem; }
+      .timeline-hours span { position: absolute; left: 0; transform: translateY(-.5em); }
+      .timeline-track { position: relative; min-width: 0; }
+      .timeline-card { position: absolute; left: 2px; right: 2px; min-height: 30px; overflow: hidden; margin: 0; padding: var(--s-half); font-size: .82rem; }
+      .timeline-card strong, .timeline-card .muted { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .timeline-card .class-time { font-size: .75rem; }
+      .timeline-time-label { color: var(--text-color-muted); font-size: .72rem; line-height: 1.1; white-space: nowrap; }
+      .timeline-axis { min-width: 42px; padding-top: 31px; }
+      .timeline-shared .timeline-card .class-time { display: none; }
+      .display-toggle { margin-left: auto; }
+      .class-time, .muted { color: var(--text-color-muted); font-size: .9rem; }
+      label { display: grid; gap: var(--s-half); }
+      [hidden] { display: none !important; }
+      input, select, textarea, button { font: inherit; }
+      input, select, textarea { box-sizing: border-box; width: 100%; padding: var(--s); color: inherit; background: var(--input-bg); border: 1px solid var(--divider-color); border-radius: 4px; }
+      button { cursor: pointer; }
+      .primary, .plain { min-height: 40px; border-radius: 4px; padding: 8px 14px; }
+      .primary { border: 0; background: var(--c-accent); color: var(--text-color-most-intense); }
+      .plain { border: 1px solid var(--divider-color); background: transparent; color: inherit; }
+      dialog { color: var(--text-color); background: var(--bg); border: 1px solid var(--divider-color); border-radius: 8px; width: min(700px, calc(100vw - 32px)); }
+      dialog form { display: grid; gap: var(--s2); }
+      .empty { color: var(--text-color-muted); text-align: center; padding: var(--s3); }
+      .status { border-left: 5px solid var(--plugin-accent, var(--c-accent)); }
+      .status-main { font-size: 1.15rem; }
+      .status-main strong { color: var(--plugin-accent, var(--c-accent)); }
+      .primary { background: var(--plugin-accent, var(--c-accent)); }
+      body[data-density="compact"] { --s3: 16px; --s2: 10px; --s: 6px; }
+      .hidden-input { display: none; }
+      @media (max-width: 680px) { .semester-grid, .form-grid { grid-template-columns: 1fr; } .week-grid { grid-template-columns: repeat(5, minmax(112px, 1fr)); } .week-grid.with-time-axis { grid-template-columns: 42px repeat(var(--day-count), minmax(112px, 1fr)); } .toolbar { align-items: flex-start; } .toolbar .actions { width: 100%; } .toolbar .actions button { flex: 1 1 140px; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="toolbar"><h1 data-i18n="UI.TITLE">Courses & Timetable</h1><div class="actions"><button id="settings" class="plain" data-i18n="UI.SETTINGS">Settings</button><button id="help" class="plain" data-i18n="UI.HELP">Help</button><button id="import" class="plain" data-i18n="UI.IMPORT">Import file</button><button id="paste-import" class="plain" data-i18n="UI.PASTE_IMPORT">Paste timetable</button><button id="export" class="plain" data-i18n="UI.EXPORT">Export</button><button id="sync-all" class="plain" data-i18n="UI.SYNC_ALL">Sync to plan</button><button id="add" class="primary" data-i18n="UI.ADD_COURSE">Add course</button></div></div>
+      <input id="import-file" class="hidden-input" type="file" accept=".csv,.html,.htm,.xlsx,text/csv,text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+      <section class="panel semester-switcher">
+        <label><span data-i18n="UI.CURRENT_SEMESTER">Current semester</span><select id="semester-select"></select></label>
+        <div class="actions"><button id="new-semester" class="plain" data-i18n="UI.NEW_SEMESTER">New semester</button><button id="edit-semester" class="plain" data-i18n="UI.EDIT_SEMESTER">Edit semester</button><button id="clear-semester" class="plain" data-i18n="UI.CLEAR_SEMESTER">Clear current timetable</button></div>
+      </section>
+      <dialog id="semester-dialog"><form id="semester-form">
+        <h2 data-i18n="UI.SEMESTER">Semester</h2>
+        <div class="semester-grid">
+          <label><span data-i18n="UI.SEMESTER_NAME">Semester name</span><input id="semester-name" /></label>
+          <label><span data-i18n="UI.START_DATE">First Monday</span><input id="semester-start" type="date" /></label>
+          <label><span data-i18n="UI.WEEKS">Weeks</span><input id="semester-weeks" type="number" min="1" max="40" value="18" /></label>
+        </div>
+        <div class="actions"><button id="semester-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button id="save-semester" class="primary" data-i18n="UI.SAVE_SEMESTER">Save semester</button></div>
+      </form></dialog>
+      <div class="week-nav"><button id="prev" class="plain" data-i18n="UI.PREVIOUS">Previous</button><strong id="week-label"></strong><button id="next" class="plain" data-i18n="UI.NEXT">Next</button><select id="display-mode" class="display-toggle" aria-label="Display mode"><option value="timeline" data-i18n="UI.TIMELINE">Timeline</option><option value="list" data-i18n="UI.LIST">Compact list</option></select></div>
+      <section class="panel status" aria-live="polite"><div id="current-status" class="status-main"></div><div id="next-status" class="muted"></div></section>
+      <section id="timetable" class="week-grid"></section>
+      <section><h2 data-i18n="UI.COURSES">Courses</h2><div id="courses"></div></section>
+    </main>
+
+    <dialog id="course-dialog">
+      <form id="course-form">
+        <input id="course-id" type="hidden" />
+        <div class="form-grid">
+          <label><span data-i18n="UI.COURSE_NAME">Course name</span><input id="course-name" required maxlength="160" /></label>
+          <label><span data-i18n="UI.TEACHER">Teacher</span><input id="teacher" maxlength="120" /></label>
+          <label><span data-i18n="UI.LOCATION">Location</span><input id="location" maxlength="120" /></label>
+          <label><span data-i18n="UI.WEEKDAY">Weekday</span><select id="weekday"></select></label>
+          <label><span data-i18n="UI.START_TIME">Start time</span><input id="start-time" type="time" required /></label>
+          <label><span data-i18n="UI.END_TIME">End time</span><input id="end-time" type="time" required /></label>
+          <label><span data-i18n="UI.START_WEEK">Start week</span><input id="start-week" type="number" min="1" value="1" required /></label>
+          <label><span data-i18n="UI.END_WEEK">End week</span><input id="end-week" type="number" min="1" value="18" required /></label>
+          <label><span data-i18n="UI.PATTERN">Week pattern</span><select id="pattern"></select></label>
+          <label><span data-i18n="UI.CUSTOM_WEEKS">Custom weeks</span><input id="custom-weeks" placeholder="1,3,5" /></label>
+          <label><span data-i18n="UI.COLOR">Color</span><input id="color" type="color" value="#3f51b5" /></label>
+          <label><span data-i18n="UI.PROJECT">Assignment project</span><select id="project"></select></label>
+        </div>
+        <label><span data-i18n="UI.NOTE">Note</span><textarea id="note" rows="3"></textarea></label>
+        <label><span data-i18n="UI.OBSIDIAN_LINK">Obsidian link</span><input id="obsidian-link" placeholder="obsidian://open?..." /></label>
+        <div class="actions"><button id="course-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="assignment-dialog">
+      <form id="assignment-form">
+        <input id="assignment-course-id" type="hidden" />
+        <label><span data-i18n="UI.ASSIGNMENT_TITLE">Assignment title</span><input id="assignment-title" required /></label>
+        <label><span data-i18n="UI.DUE_DAY">Due date</span><input id="assignment-due" type="date" /></label>
+        <label><span data-i18n="UI.ESTIMATE">Estimate</span><input id="assignment-estimate" type="number" min="0" step="5" value="60" /></label>
+        <div class="actions"><button id="assignment-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.ADD_ASSIGNMENT">Add assignment</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="settings-dialog">
+      <form id="settings-form">
+        <label><span data-i18n="UI.DENSITY">Layout density</span><select id="settings-density"><option value="comfortable" data-i18n="UI.COMFORTABLE">Comfortable</option><option value="compact" data-i18n="UI.COMPACT">Compact</option></select></label>
+        <label><span data-i18n="UI.LANGUAGE">Plugin language</span><select id="settings-language"><option value="auto" data-i18n="UI.LANGUAGE_AUTO">Follow SP language</option><option value="zh">中文</option><option value="en">English</option></select></label>
+        <label><span data-i18n="UI.ACCENT">Card accent color</span><select id="settings-accent"><option value="theme" data-i18n="UI.FOLLOW_THEME">Follow SP theme</option><option value="blue" data-i18n="UI.BLUE">Blue</option><option value="green" data-i18n="UI.GREEN">Green</option><option value="orange" data-i18n="UI.ORANGE">Orange</option><option value="purple" data-i18n="UI.PURPLE">Purple</option><option value="custom" data-i18n="UI.CUSTOM_COLOR">Custom</option></select></label>
+        <label id="custom-color-row"><span data-i18n="UI.CUSTOM_COLOR_VALUE">Custom card color</span><input id="settings-custom-color" type="color" value="#3b82f6" /></label>
+        <label><input id="settings-weekends" type="checkbox" /><span data-i18n="UI.SHOW_WEEKENDS">Show weekends</span></label>
+        <label><input id="settings-merge-names" type="checkbox" /><span data-i18n="UI.MERGE_NAMES">Merge courses with the same name</span></label>
+        <label><span data-i18n="UI.TIME_LABELS">Timeline time labels</span><select id="settings-time-labels"><option value="each" data-i18n="UI.TIME_EACH">Show on every course</option><option value="shared" data-i18n="UI.TIME_SHARED">Merge identical times on the left</option></select></label>
+        <div class="actions"><button id="settings-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="help-dialog"><form method="dialog">
+      <h2 data-i18n="UI.HELP_TITLE">Help</h2>
+      <div class="help-copy" data-i18n="UI.HELP_BODY">Quick start: set the semester, then import a timetable or add a course. The current week shows active courses; Sync sends courses to your Super Productivity plan. Export creates ICS, CSV, or JSON backups. Supported imports: CSV timetable, structured CSV, HTML tables, pasted web timetables, and XLSX. CSV timetable cells may contain course, teacher, room, and weeks; structured CSV uses one course per row; HTML preserves table, rowspan, and colspan structure. Examples: 1~3,5~16周, 4周, odd weeks, even weeks, custom weeks 1,3,5, and weekdays Monday/周一/Monday.</div>
+      <button class="primary" data-i18n="UI.CLOSE">Close</button>
+    </form></dialog>
+    <dialog id="paste-dialog"><form id="paste-form">
+      <h2 data-i18n="UI.PASTE_TITLE">Paste timetable</h2>
+      <textarea id="paste-area" rows="8" data-i18n-placeholder="UI.PASTE_HINT" placeholder="Paste a copied timetable here"></textarea>
+      <div class="actions"><button id="paste-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.IMPORT">Import</button></div>
+    </form></dialog>
+    <dialog id="export-dialog"><form method="dialog">
+      <h2 data-i18n="UI.EXPORT">Export</h2>
+      <div class="actions"><button id="export-ics" type="button" class="plain">ICS</button><button id="export-csv" type="button" class="plain">CSV</button><button id="export-json" type="button" class="plain">JSON backup</button><button class="plain" data-i18n="UI.CANCEL">Cancel</button></div>
+    </form></dialog>
+
+    <script>
+      let state = { version: 2, semesterId: 'default', semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], semesters: {} };
+      let settings = { density: 'comfortable', language: 'auto', accent: 'theme', customColor: '#3b82f6', showWeekends: true, displayMode: 'timeline', mergeNames: false, timeLabels: 'shared' };
+      let projects = [];
+      let selectedWeek = 1;
+      let displayMode = 'timeline';
+      const $ = (id) => document.getElementById(id);
+      const LOCAL_TRANSLATIONS = {
+        en: { UI: { TITLE:'Courses & Timetable', COURSES:'Courses', SEMESTER:'Semester', CURRENT_SEMESTER:'Current semester', NEW_SEMESTER:'New semester', NEW_SEMESTER_NAME:'Enter semester name', CLEAR_SEMESTER:'Clear current timetable', CONFIRM_CLEAR_SEMESTER:'Clear all courses and assignments in the current semester?', SEMESTER_NAME:'Semester name', START_DATE:'First Monday', WEEKS:'Weeks', SAVE_SEMESTER:'Save semester', WEEK:'Week', PREVIOUS:'Previous', NEXT:'Next', ADD_COURSE:'Add course', IMPORT:'Import CSV / HTML', EXPORT_ICS:'Export timetable (.ics)', SYNC_ALL:'Sync to plan', SYNC:'Sync', NO_CLASSES:'No classes this week.', CURRENT:'Now: {{name}} ({{time}})', FREE_NOW:'No class now', NEXT_CLASS:'Next: {{name}} at {{time}}', NO_NEXT:'No more classes today', SINCE_START:'Starts in {{minutes}} min', UNTIL_END:'Ends in {{minutes}} min', SYNCED:'Plan synced', SYNC_UNSUPPORTED:'This SP version cannot update existing tasks.', COURSE_NAME:'Course name', TEACHER:'Teacher', LOCATION:'Location', WEEKDAY:'Weekday', START_TIME:'Start time', END_TIME:'End time', START_WEEK:'Start week', END_WEEK:'End week', PATTERN:'Week pattern', CUSTOM_WEEKS:'Custom weeks (comma separated)', COLOR:'Color', NOTE:'Note', OBSIDIAN_LINK:'Obsidian link', PROJECT:'Assignment project', NONE:'None', EVERY:'Every week', ODD:'Odd weeks', EVEN:'Even weeks', CUSTOM:'Custom weeks', SAVE:'Save', CANCEL:'Cancel', EDIT:'Edit', DELETE:'Delete', ADD_ASSIGNMENT:'Add assignment', ASSIGNMENT_TITLE:'Assignment title', DUE_DAY:'Due date', ESTIMATE:'Estimate (minutes)', CREATED:'Assignment task created', SAVED:'Course saved', CONFIRM_DELETE:'Delete this course?', IMPORT_CONFIRM:'Import {{count}} courses? {{corrected}} corrected, {{skipped}} invalid skipped. Existing duplicates will also be skipped.', IMPORTED:'Imported {{count}} courses', IMPORT_EMPTY:'No recognizable course rows were found.', SETTINGS:'Settings', DENSITY:'Layout density', COMFORTABLE:'Comfortable', COMPACT:'Compact', LANGUAGE:'Plugin language', LANGUAGE_AUTO:'Follow SP language', ACCENT:'Card accent color', FOLLOW_THEME:'Follow SP theme', BLUE:'Blue', GREEN:'Green', ORANGE:'Orange', PURPLE:'Purple', CUSTOM_COLOR:'Custom', CUSTOM_COLOR_VALUE:'Custom card color', SHOW_WEEKENDS:'Show weekends', SETTINGS_SAVED:'Settings saved' }, DAY: { 1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday', 7:'Sunday' } },
+        zh: { UI: { TITLE:'课程与课表', COURSES:'课程列表', SEMESTER:'学期', CURRENT_SEMESTER:'当前学期', NEW_SEMESTER:'新建学期', NEW_SEMESTER_NAME:'请输入学期名称', CLEAR_SEMESTER:'清空当前学期课表', CONFIRM_CLEAR_SEMESTER:'确定清空当前学期的课程和作业吗？', SEMESTER_NAME:'学期名称', START_DATE:'第一周周一', WEEKS:'总周数', SAVE_SEMESTER:'保存学期', WEEK:'第 {{count}} 周', PREVIOUS:'上一周', NEXT:'下一周', ADD_COURSE:'添加课程', IMPORT:'导入 CSV / HTML', EXPORT_ICS:'导出课表（.ics）', SYNC_ALL:'同步到计划', SYNC:'同步', NO_CLASSES:'本周没有课程。', CURRENT:'现在：{{name}}（{{time}}）', FREE_NOW:'当前没有课', NEXT_CLASS:'下一节：{{name}}，{{time}} 开始', NO_NEXT:'今天没有下一节课', SINCE_START:'距离上课还有 {{minutes}} 分钟', UNTIL_END:'距离下课还有 {{minutes}} 分钟', SYNCED:'计划已同步', SYNC_UNSUPPORTED:'当前 SP 版本不支持更新已有任务。', COURSE_NAME:'课程名称', TEACHER:'教师', LOCATION:'地点', WEEKDAY:'星期', START_TIME:'开始时间', END_TIME:'结束时间', START_WEEK:'开始周', END_WEEK:'结束周', PATTERN:'周次模式', CUSTOM_WEEKS:'自定义周次（逗号分隔）', COLOR:'颜色', NOTE:'备注', OBSIDIAN_LINK:'Obsidian 链接', PROJECT:'作业所属项目', NONE:'无', EVERY:'每周', ODD:'单周', EVEN:'双周', CUSTOM:'自定义周次', SAVE:'保存', CANCEL:'取消', EDIT:'编辑', DELETE:'删除', ADD_ASSIGNMENT:'添加作业', ASSIGNMENT_TITLE:'作业标题', DUE_DAY:'截止日期', ESTIMATE:'预计耗时（分钟）', CREATED:'作业任务已创建', SAVED:'课程已保存', CONFIRM_DELETE:'删除这门课程？', IMPORT_CONFIRM:'识别到 {{count}} 门课程，其中自动修正 {{corrected}} 门、跳过无效数据 {{skipped}} 门。已有重复课程也会跳过。', IMPORTED:'已导入 {{count}} 门课程', IMPORT_EMPTY:'没有识别到有效的课程行。', SETTINGS:'设置', DENSITY:'界面密度', COMFORTABLE:'舒适', COMPACT:'紧凑', LANGUAGE:'插件语言', LANGUAGE_AUTO:'跟随 SP 语言', ACCENT:'卡片强调色', FOLLOW_THEME:'跟随 SP 主题', BLUE:'蓝色', GREEN:'绿色', ORANGE:'橙色', PURPLE:'紫色', CUSTOM_COLOR:'自定义', CUSTOM_COLOR_VALUE:'自定义卡片颜色', SHOW_WEEKENDS:'显示周末', SETTINGS_SAVED:'设置已保存' }, DAY: { 1:'周一', 2:'周二', 3:'周三', 4:'周四', 5:'周五', 6:'周六', 7:'周日' } }
+      };
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { EDIT_SEMESTER:'Edit semester', PASTE_IMPORT:'Paste timetable', EXPORT:'Export', TIMELINE:'Timeline', LIST:'Compact list', HELP:'Help', HELP_TITLE:'Using the timetable', CLOSE:'Close', PASTE_TITLE:'Paste web timetable', PASTE_HINT:'Copy a timetable from your school website and paste it here.', MERGE_NAMES:'Merge courses with the same name', TIME_LABELS:'Timeline time labels', TIME_EACH:'Show on every course', TIME_SHARED:'Merge identical times on the left', HELP_BODY:'Quick start: set the semester, then import a timetable or add a course. The current week shows active courses; Sync sends courses to your Super Productivity plan. Export creates ICS, CSV, or JSON backups. Supported imports: CSV timetable, structured CSV, HTML tables, pasted web timetables, and XLSX. CSV timetable cells may contain course, teacher, room, and weeks; structured CSV uses one course per row; HTML preserves table, rowspan, and colspan structure. Examples: 1~3,5~16 weeks, 4 week, odd weeks, even weeks, custom weeks 1,3,5, and weekdays Monday/周一.' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EDIT_SEMESTER:'编辑学期', PASTE_IMPORT:'粘贴网页课表', EXPORT:'导出', TIMELINE:'时间轴', LIST:'紧凑列表', HELP:'帮助', HELP_TITLE:'使用说明', CLOSE:'关闭', PASTE_TITLE:'粘贴网页课表', PASTE_HINT:'从教务系统复制课表后粘贴到这里。', MERGE_NAMES:'合并同名课程', TIME_LABELS:'时间轴时间显示', TIME_EACH:'每节课上方显示', TIME_SHARED:'相同时间合并到左侧', HELP_BODY:'快速开始：先设置学期，再导入课表或手动添加课程。当前周显示正在进行的课程；同步会把课程发送到 Super Productivity 计划。导出支持 ICS、CSV 和 JSON 备份。支持 CSV 周课表、结构化 CSV、HTML 表格、粘贴网页课表和 XLSX。CSV 周课表单元格可包含课程、教师、地点和周次；结构化 CSV 每行是一门课程；HTML 会保留 table、rowspan 和 colspan。示例：1~3,5~16周、4周、单周、双周、自定义周次 1,3,5，以及 周一 / Monday 等多语言星期。' });
+      const lookup = (object, key) => key.split('.').reduce((value, part) => value?.[part], object);
+      const interpolate = (text, params = {}) => text.replace(/\{\{(\w+)\}\}/g, (match, key) => key in params ? String(params[key]) : match);
+      const tr = async (key, params) => settings.language === 'auto' ? PluginAPI.translate(key, params) : interpolate(lookup(LOCAL_TRANSLATIONS[settings.language], key) || lookup(LOCAL_TRANSLATIONS.en, key) || key, params);
+      const esc = (value) => { const e = document.createElement('div'); e.textContent = value || ''; return e.innerHTML; };
+      const uid = () => crypto.randomUUID();
+
+      async function load() {
+        const raw = await PluginAPI.loadSyncedData('courses');
+        if (raw) {
+          try {
+            const saved = JSON.parse(raw);
+            if (saved.semesters && typeof saved.semesters === 'object') state = { ...state, ...saved };
+            else state = { ...state, ...saved, version: 2, semesterId: saved.semesterId || 'default', semesters: {} };
+          } catch (error) { console.error(error); }
+        }
+        state.semesters = state.semesters && typeof state.semesters === 'object' ? state.semesters : {};
+        if (state.semesters[state.semesterId]) {
+          const semesterData = state.semesters[state.semesterId];
+          state.semester = semesterData.semester || state.semester;
+          state.courses = semesterData.courses || state.courses;
+          state.assignments = semesterData.assignments || state.assignments;
+        }
+        state.courses = Array.isArray(state.courses) ? state.courses : [];
+        state.assignments = Array.isArray(state.assignments) ? state.assignments : [];
+        const settingsRaw = await PluginAPI.loadSyncedData('ui-settings');
+        if (settingsRaw) {
+          try { settings = { ...settings, ...JSON.parse(settingsRaw) }; } catch (error) { console.error(error); }
+        }
+        displayMode = settings.displayMode === 'list' ? 'list' : 'timeline';
+        settings.mergeNames = settings.mergeNames === true;
+        settings.timeLabels = settings.timeLabels === 'each' ? 'each' : 'shared';
+        if (!['theme', 'blue', 'green', 'orange', 'purple', 'custom'].includes(settings.accent)) settings.accent = 'blue';
+        projects = await PluginAPI.getAllProjects();
+        if (state.semester.startDate) {
+          selectedWeek = Math.max(1, Math.min(state.semester.weeks, Math.floor((Date.now() - new Date(`${state.semester.startDate}T00:00:00`).getTime()) / 604800000) + 1));
+        }
+      }
+      const save = () => {
+        state.semesters[state.semesterId] = { semester: state.semester, courses: state.courses, assignments: state.assignments };
+        return PluginAPI.persistDataSynced(JSON.stringify(state), 'courses');
+      };
+      function renderSemesterOptions() {
+        const entries = Object.entries(state.semesters);
+        if (!entries.some(([id]) => id === state.semesterId)) entries.push([state.semesterId, { semester: state.semester }]);
+        $('semester-select').innerHTML = entries.map(([id, data]) => `<option value="${esc(id)}">${esc(data.semester?.name || id)}</option>`).join('');
+        $('semester-select').value = state.semesterId;
+      }
+      async function switchSemester(semesterId) {
+        if (!semesterId || semesterId === state.semesterId) return;
+        await save();
+        const data = state.semesters[semesterId] || { semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [] };
+        state.semesterId = semesterId;
+        state.semester = data.semester;
+        state.courses = Array.isArray(data.courses) ? data.courses : [];
+        state.assignments = Array.isArray(data.assignments) ? data.assignments : [];
+        selectedWeek = 1;
+        await save();
+        renderSemesterOptions();
+        await render();
+      }
+      const saveSettings = () => PluginAPI.persistDataSynced(JSON.stringify(settings), 'ui-settings');
+      const applySettings = () => {
+        document.body.dataset.density = settings.density;
+        const colors = { theme: 'var(--c-accent)', blue: '#3b82f6', green: '#22a06b', orange: '#f59e0b', purple: '#8b5cf6' };
+        const custom = /^#[0-9a-f]{6}$/i.test(settings.customColor) ? settings.customColor : '#3b82f6';
+        document.body.style.setProperty('--plugin-accent', settings.accent === 'custom' ? custom : colors[settings.accent] || colors.theme);
+        $('custom-color-row').hidden = settings.accent !== 'custom';
+      };
+      const isActive = (course, week) => {
+        if (week < course.startWeek || week > course.endWeek) return false;
+        if (course.pattern === 'odd') return week % 2 === 1;
+        if (course.pattern === 'even') return week % 2 === 0;
+        if (course.pattern === 'custom') return course.customWeeks.includes(week);
+        return true;
+      };
+      const courseNameKey = (course) => String(course.name || '').trim().toLocaleLowerCase();
+      function courseGroups(courses = state.courses) {
+        if (!settings.mergeNames) return courses.map((course) => ({ key: course.id, name: course.name, courses: [course], representative: course }));
+        const groups = new Map();
+        courses.forEach((course) => {
+          const key = courseNameKey(course) || course.id;
+          if (!groups.has(key)) groups.set(key, { key, name: course.name, courses: [], representative: course });
+          groups.get(key).courses.push(course);
+        });
+        return [...groups.values()];
+      }
+      function visibleWeekdays() {
+        const weekdays = [1, 2, 3, 4, 5];
+        if (settings.showWeekends && [6, 7].some((day) => state.courses.some((course) => Number(course.weekday) === day && isActive(course, selectedWeek)))) weekdays.push(6, 7);
+        return weekdays;
+      }
+
+      const localDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const minutesOfDay = (value) => { const [hours, mins] = String(value).split(':').map(Number); return hours * 60 + mins; };
+      function semesterWeek(date) {
+        if (!state.semester.startDate) return null;
+        const start = new Date(`${state.semester.startDate}T00:00:00`);
+        const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        return Math.floor((day.getTime() - start.getTime()) / 604800000) + 1;
+      }
+      function occurrenceFor(course, week) {
+        if (!state.semester.startDate || !isActive(course, week)) return null;
+        const date = new Date(`${state.semester.startDate}T00:00:00`);
+        date.setDate(date.getDate() + (week - 1) * 7 + Number(course.weekday) - 1);
+        const start = new Date(date); const [startHour, startMinute] = course.startTime.split(':').map(Number); start.setHours(startHour, startMinute, 0, 0);
+        const end = new Date(date); const [endHour, endMinute] = course.endTime.split(':').map(Number); end.setHours(endHour, endMinute, 0, 0);
+        return { course, week, start, end };
+      }
+      function nextOccurrence(course, now = new Date()) {
+        if (!state.semester.startDate) return null;
+        const firstWeek = Math.max(1, semesterWeek(now) || 1);
+        for (let week = firstWeek; week <= state.semester.weeks; week++) {
+          const occurrence = occurrenceFor(course, week);
+          if (occurrence && occurrence.start > now) return occurrence;
+        }
+        return null;
+      }
+
+      function liveContext(now = new Date()) {
+        const weekday = now.getDay() === 0 ? 7 : now.getDay();
+        const week = semesterWeek(now);
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const activeWeek = week && week >= 1 && week <= state.semester.weeks ? week : null;
+        const today = state.courses.filter((course) => Number(course.weekday) === weekday && activeWeek && isActive(course, activeWeek)).sort((a, b) => a.startTime.localeCompare(b.startTime));
+        const current = today.find((course) => minutesOfDay(course.startTime) <= currentMinutes && currentMinutes < minutesOfDay(course.endTime)) || null;
+        const next = state.courses.map((course) => nextOccurrence(course, now)).filter(Boolean).sort((a, b) => a.start - b.start)[0] || null;
+        return { weekday, week: activeWeek, current, next, currentMinutes };
+      }
+
+      function getCurrentCourse() { return liveContext().current; }
+
+      async function renderStatus() {
+        const context = liveContext();
+        if (context.current) {
+          const remaining = minutesOfDay(context.current.endTime) - context.currentMinutes;
+          $('current-status').innerHTML = esc(await tr('UI.CURRENT', { name: context.current.name, time: `${context.current.startTime}-${context.current.endTime}` }));
+          $('next-status').textContent = await tr('UI.UNTIL_END', { minutes: remaining });
+        } else {
+          $('current-status').textContent = await tr('UI.FREE_NOW');
+          if (context.next) {
+            const untilStart = Math.max(1, Math.ceil((context.next.start.getTime() - Date.now()) / 60000));
+            $('next-status').textContent = `${await tr('UI.NEXT_CLASS', { name: context.next.course.name, time: `${localDate(context.next.start)} ${context.next.course.startTime}` })} · ${await tr('UI.SINCE_START', { minutes: untilStart })}`;
+          } else $('next-status').textContent = await tr('UI.NO_NEXT');
+        }
+      }
+
+      async function applyTranslations() {
+        await Promise.all(Array.from(document.querySelectorAll('[data-i18n]')).map(async (node) => { node.textContent = await tr(node.dataset.i18n); }));
+        await Promise.all(Array.from(document.querySelectorAll('[data-i18n-placeholder]')).map(async (node) => { node.placeholder = await tr(node.dataset.i18nPlaceholder); }));
+        $('weekday').innerHTML = (await Promise.all([1,2,3,4,5,6,7].map(async (day) => `<option value="${day}">${esc(await tr(`DAY.${day}`))}</option>`))).join('');
+        $('pattern').innerHTML = (await Promise.all(['every','odd','even','custom'].map(async (pattern) => `<option value="${pattern}">${esc(await tr(`UI.${pattern.toUpperCase()}`))}</option>`))).join('');
+        $('project').innerHTML = `<option value="">${esc(await tr('UI.NONE'))}</option>` + projects.map((p) => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+      }
+
+      async function render() {
+        $('display-mode').value = displayMode;
+        $('week-label').textContent = await tr('UI.WEEK', { count: selectedWeek });
+        $('prev').disabled = selectedWeek <= 1;
+        $('next').disabled = selectedWeek >= state.semester.weeks;
+        const weekdays = visibleWeekdays();
+        const sharedTimeLabels = displayMode === 'timeline' && settings.timeLabels === 'shared';
+        const sharedStartTimes = [...new Set(state.courses.filter((course) => weekdays.includes(Number(course.weekday)) && isActive(course, selectedWeek)).map((course) => course.startTime))].sort();
+        const timelineHours = sharedStartTimes.map((time) => `<span style="top:${Math.max(0, minutesOfDay(time) - 7 * 60)}px">${esc(time)}</span>`).join('');
+        $('timetable').className = `week-grid${sharedTimeLabels ? ' with-time-axis timeline-shared' : ' timeline-each'}`;
+        $('timetable').style.setProperty('--day-count', weekdays.length);
+        let weekHtml = '';
+        if (sharedTimeLabels) weekHtml = `<div class="timeline-axis"><div class="timeline-hours">${timelineHours}</div></div>`;
+        for (const day of weekdays) {
+          const active = state.courses.filter((course) => Number(course.weekday) === day && isActive(course, selectedWeek)).sort((a, b) => a.startTime.localeCompare(b.startTime));
+          if (displayMode === 'list') weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3>${active.length ? active.map((course) => `<div class="class-card" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`;
+          else {
+            const cards = active.map((course) => { const top = Math.max(0, (minutesOfDay(course.startTime) - 7 * 60)); const height = Math.max(30, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)); const label = settings.timeLabels === 'each' ? `<div class="timeline-time-label">${esc(course.startTime)}</div>` : ''; return `<div class="class-card timeline-card" style="--course-color:${esc(course.color)};top:${top}px;height:${height}px">${label}<strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`; }).join('');
+            weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3><div class="timeline"><div class="timeline-track">${cards}</div></div></div>`;
+          }
+        }
+        $('timetable').innerHTML = weekHtml;
+        await renderStatus();
+        if (!state.courses.length) {
+          $('courses').innerHTML = `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`;
+          return;
+        }
+        $('courses').innerHTML = (await Promise.all(courseGroups().map(async (group) => { const course = group.representative; const details = await Promise.all(group.courses.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`)); const detailText = details.join(' / '); return `<article class="course"><div class="course-head"><div><strong>${esc(group.name)}</strong>${group.courses.length > 1 ? `<div class="muted">${group.courses.length} sections</div>` : ''}<div class="muted">${esc(detailText)}</div></div><div class="actions"><button class="plain" data-action="assignment" data-group="${esc(group.key)}">${esc(await tr('UI.ADD_ASSIGNMENT'))}</button><button class="plain" data-action="sync" data-group="${esc(group.key)}">${esc(await tr('UI.SYNC'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><button class="plain" data-action="delete" data-group="${esc(group.key)}">${esc(await tr('UI.DELETE'))}</button></div></div>${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">Obsidian</a>` : ''}</article>`; }))).join('');
+      }
+
+      function openCourse(course) {
+        $('course-id').value = course?.id || '';
+        $('course-name').value = course?.name || '';
+        $('teacher').value = course?.teacher || '';
+        $('location').value = course?.location || '';
+        $('weekday').value = course?.weekday || '1';
+        $('start-time').value = course?.startTime || '08:00';
+        $('end-time').value = course?.endTime || '09:40';
+        $('start-week').value = course?.startWeek || 1;
+        $('end-week').value = course?.endWeek || state.semester.weeks;
+        $('pattern').value = course?.pattern || 'every';
+        $('custom-weeks').value = course?.customWeeks?.join(',') || '';
+        $('color').value = course?.color || '#3f51b5';
+        $('project').value = course?.projectId || '';
+        $('note').value = course?.note || '';
+        $('obsidian-link').value = course?.obsidianLink || '';
+        $('course-dialog').showModal();
+      }
+
+      function taskForCourse(course) {
+        const now = new Date();
+        const occurrence = nextOccurrence(course, new Date(now.getTime() - 60000));
+        const fallback = new Date(now); fallback.setDate(fallback.getDate() + (Number(course.weekday) - (fallback.getDay() || 7) + 7) % 7);
+        const dueDate = occurrence?.start || fallback;
+        const duration = Math.max(0, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)) * 60000;
+        return { title: `[Course] ${course.name} ${course.startTime}`, projectId: course.projectId, notes: `Course: ${course.name}\nCourse ID: ${course.id}\nTime: ${course.startTime}-${course.endTime}\nLocation: ${course.location || ''}\nTeacher: ${course.teacher || ''}`, dueDay: localDate(dueDate), timeEstimate: duration };
+      }
+      function groupForKey(key) {
+        return courseGroups().find((group) => group.key === key) || null;
+      }
+      async function syncCourseGroup(group) {
+        const representative = group.representative;
+        const task = taskForCourse(representative);
+        task.notes += `\nSections: ${group.courses.map((course) => `${course.startTime}-${course.endTime} ${course.location || ''} ${course.teacher || ''}`).join(' | ')}`;
+        const existingTaskId = group.courses.find((course) => course.taskId)?.taskId;
+        let taskId = existingTaskId;
+        if (taskId && typeof PluginAPI.updateTask === 'function') { task.id = taskId; await PluginAPI.updateTask(taskId, task); }
+        else if (!taskId) taskId = await PluginAPI.addTask(task);
+        else { PluginAPI.showSnack({ msg: await tr('UI.SYNC_UNSUPPORTED'), type: 'ERROR' }); return false; }
+        group.courses.forEach((course) => { course.taskId = taskId; });
+        return true;
+      }
+
+      async function syncCourse(course) {
+        const data = taskForCourse(course);
+        if (course.taskId && typeof PluginAPI.updateTask === 'function') await PluginAPI.updateTask(course.taskId, data);
+        else if (!course.taskId) course.taskId = await PluginAPI.addTask(data);
+        else { PluginAPI.showSnack({ msg: await tr('UI.SYNC_UNSUPPORTED'), type: 'ERROR' }); return false; }
+        return true;
+      }
+
+      async function syncCourses(courses) {
+        const groups = settings.mergeNames ? courseGroups(courses) : courses.map((course) => ({ key: course.id, courses: [course], representative: course }));
+        for (const group of groups) await syncCourseGroup(group);
+        await save(); await render();
+        PluginAPI.showSnack({ msg: await tr('UI.SYNCED'), type: 'SUCCESS' });
+      }
+
+      $('add').onclick = () => openCourse();
+      $('settings').onclick = () => {
+        $('settings-density').value = settings.density;
+        $('settings-language').value = settings.language;
+        $('settings-accent').value = settings.accent;
+        $('settings-custom-color').value = settings.customColor;
+        $('settings-weekends').checked = settings.showWeekends;
+        $('settings-merge-names').checked = settings.mergeNames;
+        $('settings-time-labels').value = settings.timeLabels;
+        $('settings-dialog').showModal();
+      };
+      $('settings-cancel').onclick = () => $('settings-dialog').close();
+      $('settings-form').onsubmit = async (event) => {
+        event.preventDefault();
+        settings = { ...settings, density: $('settings-density').value, language: $('settings-language').value, accent: $('settings-accent').value, customColor: $('settings-custom-color').value, showWeekends: $('settings-weekends').checked, mergeNames: $('settings-merge-names').checked, timeLabels: $('settings-time-labels').value };
+        await saveSettings();
+        applySettings();
+        await applyTranslations();
+        $('settings-dialog').close();
+        await render();
+        PluginAPI.showSnack({ msg: await tr('UI.SETTINGS_SAVED'), type: 'SUCCESS' });
+      };
+      $('settings-accent').onchange = () => { $('custom-color-row').hidden = $('settings-accent').value !== 'custom'; };
+      $('help').onclick = () => $('help-dialog').showModal();
+      $('display-mode').onchange = async () => { displayMode = $('display-mode').value; settings.displayMode = displayMode; await saveSettings(); await render(); };
+      $('sync-all').onclick = async () => syncCourses(state.courses);
+      $('course-cancel').onclick = () => $('course-dialog').close();
+      $('assignment-cancel').onclick = () => $('assignment-dialog').close();
+      $('prev').onclick = async () => { selectedWeek--; await render(); };
+      $('next').onclick = async () => { selectedWeek++; await render(); };
+      function openSemesterDialog(isNew) {
+        $('semester-dialog').dataset.newSemester = isNew ? 'true' : 'false';
+        $('semester-name').value = isNew ? '' : state.semester.name || '';
+        $('semester-start').value = isNew ? '' : state.semester.startDate || '';
+        $('semester-weeks').value = isNew ? 18 : state.semester.weeks || 18;
+        $('semester-dialog').showModal();
+      }
+      $('new-semester').onclick = () => openSemesterDialog(true);
+      $('edit-semester').onclick = () => openSemesterDialog(false);
+      $('semester-cancel').onclick = () => $('semester-dialog').close();
+      $('semester-form').onsubmit = async (event) => {
+        event.preventDefault();
+        const isNew = $('semester-dialog').dataset.newSemester === 'true';
+        if (isNew) {
+          await save();
+          state.semesterId = `semester-${Date.now()}`;
+          state.courses = [];
+          state.assignments = [];
+        }
+        state.semester = { name: $('semester-name').value.trim(), startDate: $('semester-start').value, weeks: Number($('semester-weeks').value) || 18 };
+        selectedWeek = Math.min(selectedWeek, state.semester.weeks);
+        await save(); $('semester-dialog').close(); renderSemesterOptions(); await render();
+      };
+      $('course-form').onsubmit = async (event) => {
+        event.preventDefault();
+        const old = state.courses.find((course) => course.id === $('course-id').value);
+        const course = {
+          id: old?.id || uid(), taskId: old?.taskId || null, name: $('course-name').value.trim(), teacher: $('teacher').value.trim(), location: $('location').value.trim(),
+          weekday: Number($('weekday').value), startTime: $('start-time').value, endTime: $('end-time').value,
+          startWeek: Number($('start-week').value), endWeek: Number($('end-week').value), pattern: $('pattern').value,
+          customWeeks: $('custom-weeks').value.split(',').map(Number).filter(Number.isInteger), color: $('color').value,
+          projectId: $('project').value || null, note: $('note').value.trim(), obsidianLink: $('obsidian-link').value.trim() || null,
+        };
+        state.courses = old ? state.courses.map((entry) => entry.id === course.id ? course : entry) : [...state.courses, course];
+        if (old?.taskId) await syncCourse(course);
+        await save(); $('course-dialog').close(); await render();
+        PluginAPI.showSnack({ msg: await tr('UI.SAVED'), type: 'SUCCESS' });
+      };
+      $('courses').onclick = async (event) => {
+        const button = event.target.closest('[data-action]'); if (!button) return;
+        const group = button.dataset.group ? groupForKey(button.dataset.group) : null;
+        const course = group?.representative || state.courses.find((entry) => entry.id === button.dataset.id);
+        if (!course) return;
+        if (button.dataset.action === 'edit') return openCourse(course);
+        if (button.dataset.action === 'sync') return syncCourses(group ? group.courses : [course]);
+        if (button.dataset.action === 'assignment') { $('assignment-course-id').value = group?.key || course.id; $('assignment-title').value = ''; $('assignment-due').value = ''; $('assignment-dialog').showModal(); return; }
+        if (button.dataset.action === 'delete' && confirm(await tr('UI.CONFIRM_DELETE'))) { const ids = new Set((group?.courses || [course]).map((entry) => entry.id)); state.courses = state.courses.filter((entry) => !ids.has(entry.id)); await save(); await render(); }
+      };
+      $('assignment-form').onsubmit = async (event) => {
+        event.preventDefault();
+        const group = groupForKey($('assignment-course-id').value);
+        const course = group?.representative || state.courses.find((entry) => entry.id === $('assignment-course-id').value); if (!course) return;
+        const taskId = await PluginAPI.addTask({ title: `[${course.name}] ${$('assignment-title').value.trim()}`, projectId: course.projectId, notes: `Course: ${course.name}\nCourse IDs: ${(group?.courses || [course]).map((entry) => entry.id).join(', ')}`, dueDay: $('assignment-due').value || null, timeEstimate: (Number($('assignment-estimate').value) || 0) * 60000 });
+        (group?.courses || [course]).forEach((entry) => state.assignments.push({ taskId, courseId: entry.id }));
+        await save(); $('assignment-dialog').close();
+        PluginAPI.showSnack({ msg: await tr('UI.CREATED'), type: 'SUCCESS' });
+      };
+
+      const headerAliases = {
+        name: ['name', 'course', 'course name', '课程', '课程名称'], teacher: ['teacher', '教师', '老师'], location: ['location', 'room', '地点', '教室'],
+        weekday: ['weekday', 'day', '星期', '周几'], startTime: ['starttime', 'start time', '开始时间'], endTime: ['endtime', 'end time', '结束时间'],
+        startWeek: ['startweek', 'start week', '开始周'], endWeek: ['endweek', 'end week', '结束周'], pattern: ['pattern', 'week pattern', '周次模式', '单双周'],
+        customWeeks: ['customweeks', 'custom weeks', '自定义周次'], color: ['color', '颜色'], note: ['note', '备注'], obsidianLink: ['obsidianlink', 'obsidian link', 'obsidian链接'], project: ['project', '项目'],
+      };
+      const normalizeHeader = (value) => String(value || '').trim().toLowerCase().replace(/[_-]/g, ' ');
+      function fieldForHeader(header) {
+        const normalized = normalizeHeader(header);
+        return Object.entries(headerAliases).find(([, aliases]) => aliases.includes(normalized))?.[0] || null;
+      }
+      function parseCsv(text) {
+        const firstLine = text.split(/\r?\n/).find((line) => line.trim()) || '';
+        const counts = [[',', (firstLine.match(/,/g) || []).length], ['\t', (firstLine.match(/\t/g) || []).length], [';', (firstLine.match(/;/g) || []).length]];
+        const delimiter = counts.sort((a, b) => b[1] - a[1])[0][1] ? counts[0][0] : ',';
+        const rows = [];
+        let row = [], field = '', quoted = false;
+        for (let index = 0; index < text.length; index++) {
+          const char = text[index];
+          if (quoted && char === '"' && text[index + 1] === '"') { field += '"'; index++; }
+          else if (char === '"') quoted = !quoted;
+          else if (!quoted && char === delimiter) { row.push(field); field = ''; }
+          else if (!quoted && (char === '\n' || char === '\r')) {
+            if (char === '\r' && text[index + 1] === '\n') index++;
+            row.push(field); field = '';
+            if (row.length) rows.push(row);
+            row = [];
+          } else field += char;
+        }
+        row.push(field); if (row.length) rows.push(row);
+        return rows;
+      }
+      function repairBrokenText(value) {
+        const lines = String(value ?? '').replace(/\u00a0/g, ' ').normalize('NFKC').replace(/[ \t]+/g, ' ').replace(/\r/g, '').split('\n').map((line) => line.trim()).filter(Boolean);
+        const normalized = [];
+        lines.forEach((line) => {
+          const previous = normalized.at(-1);
+          const joinsNumber = previous && /\d{1,2}\s*[:：.]\s*\d{1,2}.*[-~至—–]\s*\d+$/.test(previous) && /^(?:\d|[:：])/.test(line);
+          const joinsCode = previous && (/(?:\d[.:_-]|[:：])$/.test(previous) || /[A-Z][A-Z0-9._-]*\d$/i.test(previous)) && /^[A-Za-z0-9]/.test(line);
+          if (joinsNumber || joinsCode) normalized[normalized.length - 1] += line;
+          else normalized.push(line);
+        });
+        return normalized.join('\n').trim();
+      }
+      function normalizeCellText(value) {
+        return repairBrokenText(value);
+      }
+      function trimOuterEmptyRowsAndColumns(grid) {
+        let rows = grid.map((row) => (row || []).map((cell) => cell && { ...cell, value: normalizeCellText(cell.value) }));
+        while (rows.length && !rows[0].some((cell) => cell?.value)) rows.shift();
+        while (rows.length && !rows.at(-1).some((cell) => cell?.value)) rows.pop();
+        if (!rows.length) return [];
+        const usedColumns = [];
+        const width = Math.max(...rows.map((row) => row.length));
+        for (let column = 0; column < width; column++) if (rows.some((row) => row[column]?.value)) usedColumns.push(column);
+        return rows.map((row, rowIndex) => usedColumns.map((column) => {
+          const cell = row[column];
+          return cell ? { ...cell, startRow: rowIndex, endRow: rowIndex + Math.max(0, cell.endRow - cell.startRow) } : null;
+        }));
+      }
+      function parseHtml(text) {
+        const doc = new DOMParser().parseFromString(text, 'text/html');
+        return Array.from(doc.querySelectorAll('table')).map((table, tableIndex) => {
+          const grid = [];
+          Array.from(table.rows).forEach((row, rowIndex) => {
+            if (!grid[rowIndex]) grid[rowIndex] = [];
+            let column = 0;
+            Array.from(row.cells).forEach((cell) => {
+              while (grid[rowIndex][column]) column++;
+              const rowspan = Math.max(1, Number(cell.getAttribute('rowspan')) || 1);
+              const colspan = Math.max(1, Number(cell.getAttribute('colspan')) || 1);
+              const id = `${tableIndex}:${rowIndex}:${column}`;
+              cell.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+              const value = normalizeCellText(cell.textContent || '');
+              for (let r = 0; r < rowspan; r++) for (let c = 0; c < colspan; c++) {
+                if (!grid[rowIndex + r]) grid[rowIndex + r] = [];
+                grid[rowIndex + r][column + c] = { value, id, startRow: rowIndex, endRow: rowIndex + rowspan - 1 };
+              }
+              column += colspan;
+            });
+          });
+          const trimmed = trimOuterEmptyRowsAndColumns(grid);
+          const values = trimmed.map((row) => row.map((cell) => cell?.value || ''));
+          return values.length && values[0].some((value) => fieldForHeader(value) === 'name') ? rowsToCourses(values) : parseTimetable(trimmed);
+        }).sort((a, b) => b.length - a.length)[0] || [];
+      }
+      function weekdayFromText(value, allowBare = true) {
+        const text = normalizeCellText(value).toLowerCase().replace(/[\s._-]+/g, '');
+        const numeric = text.match(/^(?:星期|周|礼拜|day)([1-7])$/i);
+        if (numeric) return Number(numeric[1]);
+        const bare = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '日': 7, '天': 7 };
+        if (allowBare && bare[text]) return bare[text];
+        const patterns = [/^(?:星期|周|礼拜)一$|^(?:mon|monday)$/, /^(?:星期|周|礼拜)二$|^(?:tue|tuesday)$/, /^(?:星期|周|礼拜)三$|^(?:wed|wednesday)$/, /^(?:星期|周|礼拜)四$|^(?:thu|thursday)$/, /^(?:星期|周|礼拜)五$|^(?:fri|friday)$/, /^(?:星期|周|礼拜)六$|^(?:sat|saturday)$/, /^(?:星期|周|礼拜)(?:日|天)$|^(?:sun|sunday)$|^月曜日$|^火曜日$|^水曜日$|^木曜日$|^金曜日$|^土曜日$|^日曜日$/];
+        const index = patterns.findIndex((pattern) => pattern.test(text));
+        if (index < 0) return null;
+        if (text.endsWith('曜日')) return ['月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日', '日曜日'].indexOf(text) + 1;
+        return index + 1;
+      }
+      function detectWeekdayHeader(grid) {
+        for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
+          const row = grid[rowIndex] || [], explicit = {}, candidates = {};
+          row.forEach((cell, column) => {
+            const value = cell?.value;
+            const explicitDay = weekdayFromText(value, false);
+            const anyDay = weekdayFromText(value, true);
+            if (explicitDay) explicit[column] = explicitDay;
+            if (anyDay) candidates[column] = anyDay;
+          });
+          if (Object.keys(explicit).length >= 2) return { headerIndex: rowIndex, dayColumns: explicit };
+          const values = Object.values(candidates);
+          const hasSequence = values.length >= 3 && values.every((day, index) => index === 0 || day > values[index - 1]) && values.every((day) => day >= 1 && day <= 7);
+          const context = grid.slice(Math.max(0, rowIndex - 1), rowIndex + 2).flat().some((cell) => /^(?:时间|节次|时段|time|period|week|weekday)$/i.test(normalizeCellText(cell?.value)) || /第?\d+\s*(?:节|课时)|period\s*\d/i.test(normalizeCellText(cell?.value)));
+          if (hasSequence && context) return { headerIndex: rowIndex, dayColumns: candidates };
+        }
+        return null;
+      }
+      function detectPeriodColumn(grid, headerIndex, dayColumns) {
+        const width = Math.max(...grid.map((row) => row.length));
+        let best = { column: null, score: 0 };
+        for (let column = 0; column < width; column++) {
+          if (dayColumns[column]) continue;
+          let score = 0, numbered = 0, bareNumbers = [];
+          for (let rowIndex = headerIndex + 1; rowIndex < grid.length; rowIndex++) {
+            const text = normalizeCellText(grid[rowIndex]?.[column]?.value);
+            if (/^\d+$/.test(text)) bareNumbers.push(Number(text));
+            else if (/^(?:第\s*)?\d+(?:\s*[-~至—–]\s*\d+)?\s*(?:节|课时|period|section)$/i.test(text)) { score += 2; numbered++; }
+            else if (/^(?:time|period|节次|时段|时间)$/i.test(text)) score += 1;
+          }
+          const consecutive = bareNumbers.length >= 2 && bareNumbers.every((number, index) => index === 0 || number === bareNumbers[index - 1] + 1);
+          if (consecutive) { score += bareNumbers.length * 2; numbered += bareNumbers.length; }
+          if (numbered >= 2 && score > best.score) best = { column, score };
+        }
+        return best.column;
+      }
+      function rowText(grid, rowIndex, dayColumns, periodColumn) {
+        return (grid[rowIndex] || []).map((cell, column) => ({ text: normalizeCellText(cell?.value), column })).filter(({ text, column }) => text && !dayColumns[column] && column !== periodColumn);
+      }
+      function rowTimeRange(grid, rowIndex, dayColumns, periodColumn) {
+        const texts = rowText(grid, rowIndex, dayColumns, periodColumn).map(({ text }) => text).join(' ');
+        const range = texts.match(/(\d{1,2})\s*[:：.]\s*([0-5]\d)\s*[-~至—–]\s*(\d{1,2})\s*[:：.]\s*([0-5]\d)/);
+        if (range) return [`${range[1].padStart(2, '0')}:${range[2]}`, `${range[3].padStart(2, '0')}:${range[4]}`];
+        const times = [...texts.matchAll(/\b(\d{1,2})\s*[:：.]\s*([0-5]\d)\b/g)].map((match) => `${match[1].padStart(2, '0')}:${match[2]}`);
+        return times.length >= 2 ? [times[0], times[1]] : null;
+      }
+      function rowPeriod(grid, rowIndex, dayColumns, headerIndex) {
+        const periodColumn = detectPeriodColumn(grid, headerIndex, dayColumns);
+        const explicit = rowTimeRange(grid, rowIndex, dayColumns, periodColumn);
+        if (explicit) return explicit;
+        const defaults = [['08:00', '09:40'], ['10:00', '11:40'], ['14:00', '15:40'], ['16:00', '17:40'], ['19:00', '20:40']];
+        const label = normalizeCellText(grid[rowIndex]?.[periodColumn]?.value);
+        const section = label.match(/(?:第\s*)?(\d+)(?:\s*[-~至—–]\s*(\d+))?\s*(?:节|课时|period|section)?/i);
+        const slot = section ? Math.max(1, Math.ceil(Number(section[1]) / (section[2] ? 2 : 1))) : rowIndex - headerIndex;
+        return defaults[Math.min(defaults.length - 1, slot - 1)] || defaults[0];
+      }
+      function normalizeCourseCell(value) {
+        return repairBrokenText(String(value || '').replace(/<br\s*\/?\s*>/gi, '\n'));
+      }
+      function courseSegments(text) {
+        const normalized = normalizeCourseCell(text);
+        return normalized.split(/\n\s*(?:-{2,}|={2,}|\|{2,})\s*\n|\s*\|\s*/).map((segment) => segment.trim()).filter(Boolean);
+      }
+      function parseWeekSpec(value) {
+        const text = normalizeCourseCell(value);
+        const expressions = [];
+        const addExpression = (body, match) => expressions.push({ body, index: match.index, length: match[0].length });
+        for (const match of text.matchAll(/(?:第\s*)?((?:\d+\s*(?:[-~至—–]\s*\d+)?\s*(?:[,，、/＋+]\s*)?)+)\s*(?:周|周次)/gi)) addExpression(match[1], match);
+        for (const match of text.matchAll(/(?:weeks?|wks?)\s*((?:\d+\s*(?:[-~至—–]\s*\d+)?\s*(?:[,，、/＋+]\s*)?)+)/gi)) addExpression(match[1], match);
+        const weeks = new Set();
+        expressions.forEach(({ body }) => {
+          for (const item of body.matchAll(/(\d+)\s*(?:[-~至—–]\s*(\d+))?/g)) {
+            const from = Number(item[1]), to = Number(item[2] || item[1]);
+            for (let week = Math.min(from, to); week <= Math.max(from, to); week++) weeks.add(week);
+          }
+        });
+        const customWeeks = [...weeks].sort((a, b) => a - b);
+        const odd = /(?:odd\s*weeks?|单周)/i.test(text);
+        const even = /(?:even\s*weeks?|双周)/i.test(text);
+        const contiguous = customWeeks.length > 0 && customWeeks.every((week, index) => index === 0 || week === customWeeks[index - 1] + 1);
+        return {
+          weeks: customWeeks,
+          startWeek: customWeeks[0] || 1,
+          endWeek: customWeeks.at(-1) || state.semester.weeks,
+          pattern: odd ? 'odd' : even ? 'even' : contiguous ? 'every' : customWeeks.length ? 'custom' : 'every',
+          expression: expressions.length ? text.slice(expressions[0].index, expressions[0].index + expressions[0].length) : '',
+        };
+      }
+      function extractCourseName(text, lines) {
+        const boundary = /\s*(?:教学班代码|教学班|班号|class\s*code|section|周次|weeks?|wks?|节次|period|时间|time|地点|location|room|教师|老师|teacher|lecturer|instructor)\s*[:：]?/i;
+        const metadata = /^(?:教学班代码|教学班|班号|class\s*code|section|周次|weeks?|wks?|节次|period|时间|time|地点|location|room|教师|老师|teacher|lecturer|instructor)\s*[:：]?/i;
+        const candidate = lines.find((line) => !metadata.test(line) && !/^(午休|休息|break|lunch|自习)$/i.test(line)) || '';
+        return candidate.split(boundary)[0].trim();
+      }
+      function extractTime(text, fallbackStart, fallbackEnd) {
+        const match = text.match(/(\d{1,2})\s*[:：.]\s*([0-5]\d)\s*[-~至—–]\s*(\d{1,2})\s*[:：.]\s*([0-5]\d)/);
+        return match ? [`${match[1].padStart(2, '0')}:${match[2]}`, `${match[3].padStart(2, '0')}:${match[4]}`] : [fallbackStart, fallbackEnd];
+      }
+      function extractClassCode(text) {
+        return text.match(/(?:教学班代码|class\s*code|班号|section)\s*[:：]?\s*([A-Za-z0-9._-]+)/i)?.[1] || '';
+      }
+      function extractTeacher(lines) {
+        const labeled = lines.find((line) => /^(?:任课)?(?:教师|老师|teacher|lecturer|instructor)\s*[:：]?\s*\S+/i.test(line));
+        return labeled ? labeled.replace(/^(?:任课)?(?:教师|老师|teacher|lecturer|instructor)\s*[:：]?\s*/i, '') : lines.find((line) => /(?:老师|教授|prof\.?$)/i.test(line)) || '';
+      }
+      function extractLocation(lines) {
+        const labeled = lines.find((line) => /^(?:上课)?(?:地点|教室|location|room)\s*[:：]?\s*\S+/i.test(line));
+        return labeled ? labeled.replace(/^(?:上课)?(?:地点|教室|location|room)\s*[:：]?\s*/i, '') : lines.find((line) => /(?:教|楼|室|馆|room|building|campus)/i.test(line)) || '';
+      }
+      function courseFromCell(value, weekday, startTime, endTime) {
+        const text = normalizeCourseCell(value);
+        const lines = text.split(/\n|[|；;]/).map((part) => part.trim()).filter(Boolean);
+        if (!lines.length || /^(午休|休息|break|lunch|自习)$/i.test(lines[0])) return null;
+        const weekSpec = parseWeekSpec(text);
+        const [cellStartTime, cellEndTime] = extractTime(text, startTime, endTime);
+        const teacher = extractTeacher(lines);
+        const location = extractLocation(lines);
+        const classCode = extractClassCode(text);
+        const name = extractCourseName(text, lines);
+        const details = lines.slice(1).filter((line) => line !== teacher && line !== location && !/^(?:教学班代码|教学班|班号|class\s*code|section|周次|weeks?|wks?|节次|period|时间|time|地点|location|room|教师|老师|teacher|lecturer|instructor)\s*[:：]?/i.test(line) && !/\d{1,2}\s*[:：.]\s*[0-5]\d|(?:周|周次|weeks?|wks?)/i.test(line));
+        return {
+          id: uid(), taskId: null, name, teacher, location, weekday,
+          startTime: cellStartTime, endTime: cellEndTime,
+          startWeek: weekSpec.startWeek, endWeek: weekSpec.endWeek, pattern: weekSpec.pattern,
+          customWeeks: weekSpec.weeks, color: '#3f51b5', projectId: null,
+          note: [classCode ? `教学班: ${classCode}` : '', ...details].filter(Boolean).join(' · '), obsidianLink: null,
+        };
+      }
+      function extractCourses(value, weekday, startTime, endTime) {
+        return courseSegments(value).map((segment) => courseFromCell(segment, weekday, startTime, endTime)).filter(Boolean);
+      }
+      function parseTimetable(grid) {
+        const trimmed = trimOuterEmptyRowsAndColumns(grid);
+        const header = detectWeekdayHeader(trimmed);
+        if (!header) return [];
+        const { headerIndex, dayColumns } = header;
+        const periodColumn = detectPeriodColumn(trimmed, headerIndex, dayColumns);
+        const seen = new Set(), courses = [];
+        for (let rowIndex = headerIndex + 1; rowIndex < trimmed.length; rowIndex++) {
+          const row = trimmed[rowIndex] || [];
+          Object.entries(dayColumns).forEach(([column, weekday]) => {
+            const cell = row[Number(column)]; const seenKey = `${cell?.id}:${weekday}`;
+            if (!cell || !cell.value || seen.has(seenKey)) return;
+            seen.add(seenKey);
+            const [startTime] = rowPeriod(trimmed, cell.startRow ?? rowIndex, dayColumns, headerIndex);
+            const [, endTime] = rowPeriod(trimmed, cell.endRow ?? rowIndex, dayColumns, headerIndex);
+            courses.push(...extractCourses(cell.value, weekday, startTime, endTime));
+          });
+        }
+        return courses;
+      }
+      const gridToCourses = parseTimetable;
+      function weekdayNumber(value) {
+        const parsed = weekdayFromText(value);
+        const numeric = Number(String(value || '').trim());
+        return parsed || (Number.isInteger(numeric) && numeric >= 1 && numeric <= 7 ? numeric : null);
+      }
+      function normalizePattern(value) {
+        const text = String(value || '').trim().toLowerCase();
+        if (['odd', '单周', '单'].includes(text)) return 'odd';
+        if (['even', '双周', '双'].includes(text)) return 'even';
+        if (['custom', '自定义'].includes(text)) return 'custom';
+        return 'every';
+      }
+      function rowsToCourses(rows) {
+        rows = trimOuterEmptyRowsAndColumns(rows.map((row, rowIndex) => row.map((value, column) => ({ value, id: `${rowIndex}:${column}`, startRow: rowIndex, endRow: rowIndex }))));
+        if (rows.length < 2) return [];
+        const fields = rows[0].map((cell) => fieldForHeader(cell?.value));
+        if (!fields.includes('name')) {
+          return parseTimetable(rows);
+        }
+        return rows.slice(1).map((row) => {
+          const source = {}; fields.forEach((field, index) => { if (field) source[field] = row[index]?.value || ''; });
+          const project = projects.find((item) => item.title.toLowerCase() === String(source.project || '').trim().toLowerCase());
+          return {
+            id: uid(), name: String(source.name || '').trim(), teacher: String(source.teacher || '').trim(), location: String(source.location || '').trim(),
+            weekday: weekdayNumber(source.weekday), startTime: String(source.startTime || '08:00').trim(), endTime: String(source.endTime || '09:40').trim(),
+            startWeek: Number(source.startWeek) || 1, endWeek: Number(source.endWeek) || state.semester.weeks, pattern: normalizePattern(source.pattern),
+            customWeeks: String(source.customWeeks || '').split(/[,，\s]+/).map(Number).filter((week) => Number.isInteger(week) && week > 0), color: /^#[0-9a-f]{6}$/i.test(source.color) ? source.color : '#3f51b5',
+            projectId: project?.id || null, note: String(source.note || '').trim(), obsidianLink: String(source.obsidianLink || '').trim() || null,
+          };
+        }).filter((course) => course.name);
+      }
+      function normalizeTime(value) {
+        const text = String(value || '').trim().replace(/[：.]/g, ':');
+        const compact = text.match(/^(\d{1,2})(\d{2})$/);
+        const hourOnly = text.match(/^(\d{1,2})\s*(?:点|时)$/);
+        const parts = compact ? [compact[1], compact[2]] : hourOnly ? [hourOnly[1], '0'] : (text.match(/^(\d{1,2})(?:\s*[:点时]\s*(\d{1,2}))?(?:分)?$/) || []).slice(1);
+        if (!parts.length) return null;
+        const hours = Number(parts[0]), minutes = Number(parts[1] || 0);
+        return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}` : null;
+      }
+      function validateImportedCourses(imported) {
+        let corrected = 0, skipped = 0;
+        const courses = imported.map((course) => {
+          const original = JSON.stringify(course);
+          const weekday = weekdayNumber(course.weekday);
+          const startTime = normalizeTime(course.startTime);
+          const endTime = normalizeTime(course.endTime);
+          const name = String(course.name || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+          if (!name || !weekday || !startTime || !endTime || minutesOfDay(endTime) <= minutesOfDay(startTime)) { skipped++; return null; }
+          let startWeek = Math.max(1, Number.parseInt(course.startWeek, 10) || 1);
+          let endWeek = Math.max(1, Number.parseInt(course.endWeek, 10) || state.semester.weeks);
+          if (startWeek > endWeek) [startWeek, endWeek] = [endWeek, startWeek];
+          const maxWeeks = Math.max(1, Number(state.semester.weeks) || 18);
+          startWeek = Math.min(startWeek, maxWeeks); endWeek = Math.min(endWeek, maxWeeks);
+          const customWeeks = Array.from(new Set((course.customWeeks || []).map(Number).filter((week) => Number.isInteger(week) && week >= startWeek && week <= endWeek))).sort((a, b) => a - b);
+          const normalized = { ...course, name, weekday, startTime, endTime, startWeek, endWeek, customWeeks, pattern: course.pattern === 'custom' && !customWeeks.length ? 'every' : course.pattern };
+          if (JSON.stringify(normalized) !== original) corrected++;
+          return normalized;
+        }).filter(Boolean);
+        return { courses, corrected, skipped };
+      }
+      async function readImportFile(file) {
+        const buffer = await file.arrayBuffer();
+        try { return new TextDecoder('utf-8', { fatal: true }).decode(buffer).replace(/^\uFEFF/, ''); }
+        catch (error) { return new TextDecoder('gb18030').decode(buffer).replace(/^\uFEFF/, ''); }
+      }
+      async function loadXlsxLibrary() {
+        if (window.XLSX) return window.XLSX;
+        await new Promise((resolve, reject) => { const script = document.createElement('script'); script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.mini.min.js'; script.onload = resolve; script.onerror = reject; document.head.appendChild(script); });
+        return window.XLSX;
+      }
+      async function parseXlsx(buffer) {
+        const XLSX = await loadXlsxLibrary();
+        const workbook = XLSX.read(buffer, { type: 'array', cellDates: false });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        const grid = rawRows.map((row, rowIndex) => row.map((value, column) => ({ value: String(value ?? ''), id: `${rowIndex}:${column}`, startRow: rowIndex, endRow: rowIndex })));
+        (sheet['!merges'] || []).forEach((merge) => {
+          const source = grid[merge.s.r]?.[merge.s.c];
+          if (!source) return;
+          for (let row = merge.s.r; row <= merge.e.r; row++) for (let column = merge.s.c; column <= merge.e.c; column++) {
+            if (!grid[row]) grid[row] = [];
+            grid[row][column] = { value: source.value, id: `${merge.s.r}:${merge.s.c}`, startRow: merge.s.r, endRow: merge.e.r };
+          }
+        });
+        const values = grid.map((row) => row.map((cell) => cell?.value || ''));
+        return values[0]?.some((value) => fieldForHeader(value) === 'name') ? rowsToCourses(values) : parseTimetable(grid);
+      }
+      async function addImportedCourses(parsed) {
+        const { courses: imported, corrected, skipped } = validateImportedCourses(parsed);
+        if (!imported.length) { PluginAPI.showSnack({ msg: await tr('UI.IMPORT_EMPTY'), type: 'ERROR' }); return false; }
+        if (!confirm(await tr('UI.IMPORT_CONFIRM', { count: imported.length, corrected, skipped }))) return false;
+        const fingerprints = new Set(state.courses.map((course) => `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
+        const additions = imported.filter((course) => !fingerprints.has(`${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
+        state.courses.push(...additions);
+        await save(); await render();
+        PluginAPI.showSnack({ msg: await tr('UI.IMPORTED', { count: additions.length }), type: 'SUCCESS' });
+        return true;
+      }
+      async function importClipboardContent(html, plain) {
+        return addImportedCourses(html ? parseHtml(html) : rowsToCourses(parseCsv(plain)));
+      }
+      $('import').onclick = () => $('import-file').click();
+      $('semester-select').onchange = async () => switchSemester($('semester-select').value);
+      $('clear-semester').onclick = async () => {
+        if (!state.courses.length && !state.assignments.length) return;
+        if (!confirm(await tr('UI.CONFIRM_CLEAR_SEMESTER'))) return;
+        state.courses = [];
+        state.assignments = [];
+        await save();
+        await render();
+      };
+      $('import-file').onchange = async () => {
+        const file = $('import-file').files[0];
+        if (!file) return;
+        try {
+          if (/\.xlsx$/i.test(file.name)) await addImportedCourses(await parseXlsx(await file.arrayBuffer()));
+          else { const text = await readImportFile(file); await addImportedCourses(/\.html?$/i.test(file.name) ? parseHtml(text) : rowsToCourses(parseCsv(text))); }
+        } catch (error) {
+          console.error(error);
+          PluginAPI.showSnack({ msg: await tr('UI.IMPORT_EMPTY'), type: 'ERROR' });
+        } finally {
+          $('import-file').value = '';
+        }
+      };
+      $('paste-import').onclick = () => { $('paste-area').value = ''; $('paste-dialog').showModal(); $('paste-area').focus(); };
+      $('paste-cancel').onclick = () => $('paste-dialog').close();
+      $('paste-area').onpaste = async (event) => {
+        event.preventDefault();
+        const clipboard = event.clipboardData;
+        const html = clipboard?.getData('text/html') || '';
+        const plain = clipboard?.getData('text/plain') || '';
+        $('paste-area').value = plain;
+        if (html || plain) { await importClipboardContent(html, plain); $('paste-dialog').close(); }
+      };
+      $('paste-form').onsubmit = async (event) => {
+        event.preventDefault();
+        const plain = $('paste-area').value;
+        if (plain) { await importClipboardContent('', plain); $('paste-dialog').close(); }
+      };
+
+      function pad(value) { return String(value).padStart(2, '0'); }
+      function icsDate(date) { return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`; }
+      function sendDownload(filename, data, type) {
+        window.parent.postMessage({ source: 'sp-study-courses', type, filename, data }, '*');
+      }
+      function buildIcs() {
+        if (!state.semester.startDate) return;
+        const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Super Productivity//Study Courses//EN'];
+        for (const course of state.courses) for (let week = course.startWeek; week <= course.endWeek; week++) if (isActive(course, week)) {
+          const base = new Date(`${state.semester.startDate}T00:00:00`); base.setDate(base.getDate() + (week - 1) * 7 + course.weekday - 1);
+          const start = new Date(base); const [sh, sm] = course.startTime.split(':').map(Number); start.setHours(sh, sm);
+          const end = new Date(base); const [eh, em] = course.endTime.split(':').map(Number); end.setHours(eh, em);
+          lines.push('BEGIN:VEVENT', `UID:${course.id}-${week}@super-productivity`, `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`, `SUMMARY:${course.name.replace(/[,;]/g, ' ')}`, `LOCATION:${course.location.replace(/[,;]/g, ' ')}`, 'END:VEVENT');
+        }
+        lines.push('END:VCALENDAR');
+        return lines.join('\r\n');
+      }
+      function csvCell(value) { return `"${String(value ?? '').replace(/"/g, '""')}"`; }
+      function buildCsv() {
+        const fields = ['name', 'teacher', 'location', 'weekday', 'startTime', 'endTime', 'startWeek', 'endWeek', 'pattern', 'customWeeks', 'color', 'note', 'obsidianLink', 'projectId', 'taskId'];
+        return [fields.join(','), ...state.courses.map((course) => fields.map((field) => csvCell(Array.isArray(course[field]) ? course[field].join(',') : course[field])).join(','))].join('\r\n');
+      }
+      $('export').onclick = () => $('export-dialog').showModal();
+      $('export-ics').onclick = () => { const data = buildIcs(); if (data) { sendDownload(`${state.semester.name || 'timetable'}.ics`.replace(/[<>:"/\\|?*]/g, '_'), data, 'DOWNLOAD_ICS'); $('export-dialog').close(); } };
+      $('export-csv').onclick = () => { sendDownload(`${state.semester.name || 'timetable'}.csv`.replace(/[<>:"/\\|?*]/g, '_'), buildCsv(), 'DOWNLOAD_TEXT'); $('export-dialog').close(); };
+      $('export-json').onclick = () => { sendDownload(`${state.semester.name || 'timetable'}.json`.replace(/[<>:"/\\|?*]/g, '_'), JSON.stringify(state, null, 2), 'DOWNLOAD_TEXT'); $('export-dialog').close(); };
+
+      async function init() { await load(); applySettings(); await applyTranslations(); renderSemesterOptions(); await render(); }
+      setInterval(() => { if (document.visibilityState === 'visible') renderStatus(); }, 60000);
+      PluginAPI.registerHook(PluginAPI.Hooks.LANGUAGE_CHANGE, async () => { await applyTranslations(); await render(); });
+      PluginAPI.registerHook(PluginAPI.Hooks.PERSISTED_DATA_CHANGED, init);
+      init();
+    </script>
+  </body>
+</html>
