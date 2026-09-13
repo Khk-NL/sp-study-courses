@@ -93,3 +93,10 @@
 - Statistics resolve single-week cancellations and reschedules first. Smoke tests cover totals under both conditions and tag inheritance.
 - Added inspectable, anonymized structured CSV, weekly-grid CSV (including a broken-line time), and HTML timetable fixtures. Browser tests continue to generate compressed XLSX/DOCX OOXML samples in memory for multi-sheet and merged-cell coverage.
 - No Android device or emulator/`adb` was available in this environment, so mobile installation and native handoff remain a user-device verification item.
+
+### v2.4.1 course-list layout and navigation
+
+- Moved course metadata, related task summaries, notes, and Obsidian entry to the left side of each course card; aligned action buttons on the right, with a single-column mobile layout.
+- Timetable cards now jump to and briefly highlight the matching course-list card, including when same-name sections are merged. Click and keyboard activation work in compact and timeline layouts.
+- Added course-list sorting by weekly time or name. The selected order is saved in synced UI settings without changing stored course order.
+- Added sort assertions to parser smoke checks and a desktop browser interaction check for layout, sorting, and jump behavior.

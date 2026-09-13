@@ -49,6 +49,8 @@ Core principles:
 - Show current-time line and highlight the active course.
 - Place overlapping classes side by side and warn about conflicts.
 - Offer compact list fallback.
+- Timetable cards jump to their matching course-list card, including merged-name groups; course-list cards place details at lower left and actions on the right.
+- Sort the course list by weekday/start time or by course name, and sync the selected display preference.
 
 ### Plan
 

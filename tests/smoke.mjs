@@ -96,4 +96,8 @@ evaluate("$('import-edit-form').onsubmit(submitEvent)");
 assert.equal(evaluate('pendingImport.entries[0].course.name'), 'Software Engineering Edited');
 assert.equal(evaluate('pendingImport.entries[0].course.weekday'), 2);
 assert.equal(persisted.get('courses'), beforePreview, 'editing preview does not save');
+evaluate("state.courses[1].startTime = '08:00'; settings.courseSort = 'time'");
+assert.deepEqual(Array.from(evaluate('sortedCourseGroups().map((group) => group.key)')), ['b', 'a']);
+evaluate("settings.courseSort = 'name'");
+assert.deepEqual(Array.from(evaluate('sortedCourseGroups().map((group) => group.key)')), ['a', 'b']);
 console.log('parser, preview, conflicts, exceptions, ICS, synced persistence smoke passed');

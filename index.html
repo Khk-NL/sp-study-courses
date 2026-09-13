@@ -16,6 +16,17 @@
       .day { min-width: 120px; }
       .day h3 { color: var(--text-color-muted); font-size: .9rem; }
       .class-card { border-left: 5px solid var(--course-color); padding: var(--s); }
+      #timetable .class-card { cursor: pointer; }
+      #timetable .class-card:focus-visible, .course-jump-highlight { outline: 2px solid var(--plugin-accent, var(--c-accent)); outline-offset: 2px; }
+      .course-list-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
+      .course-list-head label { display: flex; align-items: center; gap: var(--s); }
+      .course-list-head select { width: auto; min-width: 110px; }
+      .course { display: flex; flex-direction: column; }
+      .course-head { justify-content: flex-start; }
+      .course-bottom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 40%); gap: var(--s2); align-items: end; margin-top: var(--s); }
+      .course-description { min-width: 0; overflow-wrap: anywhere; }
+      .course-description p { margin: var(--s) 0; }
+      .course-actions > .actions { justify-content: flex-end; }
       .timeline { position: relative; min-height: 900px; border-top: 1px solid var(--divider-color); background: repeating-linear-gradient(to bottom, transparent 0, transparent 59px, var(--divider-color) 60px); }
       .timeline-hours { position: relative; height: 900px; color: var(--text-color-muted); font-size: .72rem; }
       .timeline-hours span { position: absolute; left: 0; transform: translateY(-.5em); }
@@ -38,7 +49,7 @@
       .task-list { margin: var(--s) 0 0; padding-left: 22px; }
       .task-row, .event-row { margin: 6px 0; }
       .badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: .72rem; background: color-mix(in srgb, var(--plugin-accent, var(--c-accent)) 18%, transparent); }
-      .course-actions { display: contents; } .course-actions > summary { display: none; }
+      .course-actions > summary { display: none; }
       .warning { color: #b45309; }
       .danger { color: #dc2626; }
       .preview-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
@@ -72,7 +83,7 @@
         .toolbar { align-items: flex-start; } .toolbar h1 { font-size: 1.2rem; } .toolbar .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr auto; }
         .toolbar #export, .toolbar #sync-all, .toolbar #help, .toolbar #settings { display: none; } .mobile-only { display: inline-flex; }
         .week-grid, .week-grid.with-time-axis { display: block; overflow: visible; } .timeline-axis { display: none; } .day { min-width: 0; } .class-card { min-height: 44px; }
-        .view-tabs { display: none; } .course-head { align-items: flex-start; } .course-actions { display: block; width: 100%; } .course-actions > summary { display: block; list-style: none; text-align: center; } .course-actions > .actions { margin-top: 8px; width: 100%; } .course-actions > .actions button { min-width: 44px; flex: 1 1 110px; }
+        .view-tabs { display: none; } .course-bottom { grid-template-columns: 1fr; } .course-actions { width: 100%; } .course-actions > summary { display: block; list-style: none; text-align: center; } .course-actions > .actions { margin-top: 8px; width: 100%; } .course-actions > .actions button { min-width: 44px; flex: 1 1 110px; }
         button, summary, input, select { min-height: 44px; } dialog { box-sizing: border-box; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 0; border: 0; } dialog form { min-height: calc(100dvh - 32px); align-content: start; }
         .preview-table, .preview-table tbody, .preview-table tr, .preview-table td { display: block; width: 100%; box-sizing: border-box; } .preview-table thead { display: none; } .preview-table tr { margin-bottom: 10px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 8px; } .preview-table td { border: 0; padding: 3px 0; }
         .bottom-nav { position: fixed; display: grid; grid-template-columns: repeat(4, 1fr); left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 1px solid var(--divider-color); padding: 4px env(safe-area-inset-right) calc(4px + env(safe-area-inset-bottom)) env(safe-area-inset-left); } .bottom-nav button { border: 0; background: transparent; color: inherit; }
@@ -102,7 +113,7 @@
          <section class="panel status" aria-live="polite"><div id="current-status" class="status-main"></div><div id="next-status" class="muted"></div></section>
          <section id="week-stats" class="stats" aria-label="Week statistics"></section>
         <section id="timetable" class="week-grid"></section>
-        <section><h2 data-i18n="UI.COURSES">Courses</h2><div id="courses"></div></section>
+        <section><div class="course-list-head"><h2 data-i18n="UI.COURSES">Courses</h2><label><span data-i18n="UI.SORT_BY">Sort by</span><select id="course-sort"><option value="time" data-i18n="UI.SORT_TIME">Time</option><option value="name" data-i18n="UI.SORT_NAME">Name</option></select></label></div><div id="courses"></div></section>
       </section>
       <section id="view-plan" class="view-panel" hidden><div id="plan-view"></div></section>
       <section id="view-today" class="view-panel" hidden><div id="today-view"></div></section>
@@ -196,7 +207,7 @@
 
     <script>
       let state = { version: 3, semesterId: 'default', semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], events: [], exceptions: [], semesters: {} };
-      let settings = { density: 'comfortable', language: 'auto', accent: 'theme', customColor: '#3b82f6', showWeekends: true, displayMode: 'timeline', mergeNames: false, timeLabels: 'shared' };
+      let settings = { density: 'comfortable', language: 'auto', accent: 'theme', customColor: '#3b82f6', showWeekends: true, displayMode: 'timeline', mergeNames: false, timeLabels: 'shared', courseSort: 'time' };
       let projects = [];
       let tags = [];
       let selectedWeek = 1;
@@ -217,6 +228,8 @@
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { VIEW_TIMETABLE:'课表', VIEW_PLAN:'计划', VIEW_TODAY:'今日', TODAY_COURSES:'今天全部课程', TODAY_TASKS:'今日任务', TODAY_DDL:'今日 DDL', UPCOMING_EVENTS:'即将发生的课程事件', EVENT:'课程事件', EVENT_TYPE:'事件类型', ADD_EVENT:'添加事件', NO_EVENTS:'暂无安排', EXCEPTION:'调课 / 停课', RESET_EXCEPTION:'恢复正常课表', CANCEL_CLASS:'本周停课', TASK_PREFIX:'默认任务标题前缀', ADD_TASK:'添加任务', OPEN_TASKS:'个未完成任务', SYNCED_STATUS:'已同步', NOT_SYNCED:'未同步', OPEN_NOTES:'打开课程笔记', ACTIONS:'课程操作', CONFLICT_CONFIRM:'这门课程至少在一周内与其他课程时间冲突，仍然保存吗？', IMPORT_PREVIEW:'导入预览', VALID:'有效', DUPLICATE:'重复', CONFLICT:'冲突', INVALID:'无效', CORRECTED:'已修正', MORE:'更多', DOCX_PENDING:'DOCX 表格导入将在下一版本完成。当前请使用网页粘贴、HTML、CSV 或 XLSX。' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { OFFICE_UNSUPPORTED:'This device cannot decompress Office files. Try CSV, HTML, or web paste.', XLSX_NO_SHEET:'No timetable worksheet was found in this workbook.', DOCX_IMAGE_ONLY:'This Word file appears to contain only a timetable image. OCR is not supported.', DOCX_NO_TABLE:'No timetable table or supported course paragraphs were found in this Word file.' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { OFFICE_UNSUPPORTED:'当前设备无法解压 Office 文件，请改用 CSV、HTML 或网页粘贴。', XLSX_NO_SHEET:'工作簿中没有找到可识别的课表工作表。', DOCX_IMAGE_ONLY:'Word 文件似乎只有课表图片；目前不支持 OCR。', DOCX_NO_TABLE:'Word 文件中没有找到可识别的课表表格或课程段落。' });
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { SORT_BY:'Sort by', SORT_TIME:'Time', SORT_NAME:'Name' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { SORT_BY:'排序', SORT_TIME:'时间', SORT_NAME:'名称' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { COPY_LINK:'Copy link', COPY_MANUAL:'Select and copy the link above if it did not open.', COPIED:'Link copied' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { COPY_LINK:'复制链接', COPY_MANUAL:'若未能打开，请选中并复制上方链接。', COPIED:'链接已复制' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { EXPORT_FALLBACK:'If the download did not start, copy the file contents below.', COPY_EXPORT:'Copy contents' });
@@ -260,6 +273,7 @@
           try { settings = { ...settings, ...JSON.parse(settingsRaw) }; } catch (error) { console.error(error); }
         }
         displayMode = settings.displayMode === 'list' ? 'list' : 'timeline';
+        settings.courseSort = settings.courseSort === 'name' ? 'name' : 'time';
         settings.mergeNames = settings.mergeNames === true;
         settings.timeLabels = settings.timeLabels === 'each' ? 'each' : 'shared';
         if (!['theme', 'blue', 'green', 'orange', 'purple', 'custom'].includes(settings.accent)) settings.accent = 'blue';
@@ -355,6 +369,12 @@
           groups.get(key).courses.push(course);
         });
         return [...groups.values()];
+      }
+      function sortedCourseGroups() {
+        const groups = courseGroups();
+        if (settings.courseSort === 'name') return groups.sort((a, b) => a.name.localeCompare(b.name, settings.language === 'zh' ? 'zh' : 'en') || a.key.localeCompare(b.key));
+        const firstTime = (group) => Math.min(...group.courses.map((course) => (Number(course.weekday) - 1) * 1440 + minutesOfDay(course.startTime)));
+        return groups.sort((a, b) => firstTime(a) - firstTime(b) || a.name.localeCompare(b.name) || a.key.localeCompare(b.key));
       }
       function visibleWeekdays() {
         if (isMobile()) return [new Date().getDay() || 7];
@@ -508,6 +528,7 @@
       async function renderTimetable() {
         const effectiveDisplayMode = isMobile() ? 'list' : displayMode;
         $('display-mode').value = effectiveDisplayMode;
+        $('course-sort').value = settings.courseSort;
         $('week-label').textContent = await tr('UI.WEEK', { count: selectedWeek });
         $('prev').disabled = selectedWeek <= 1;
         $('next').disabled = selectedWeek >= state.semester.weeks;
@@ -523,10 +544,10 @@
         if (sharedTimeLabels) weekHtml = `<div class="timeline-axis"><div class="timeline-hours">${timelineHours}</div></div>`;
         for (const day of weekdays) {
           const active = weekCourses.filter((course) => Number(course.weekday) === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
-          if (effectiveDisplayMode === 'list') { const currentCourse = selectedWeek === semesterWeek(new Date()) ? getCurrentCourse() : null; weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3>${active.length ? active.map((course) => `<div class="class-card${currentCourse?.id === course.id ? ' current-course' : ''}${conflicts.has(course.id) ? ' danger' : ''}" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`; }
+          if (effectiveDisplayMode === 'list') { const currentCourse = selectedWeek === semesterWeek(new Date()) ? getCurrentCourse() : null; weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3>${active.length ? active.map((course) => `<div class="class-card${currentCourse?.id === course.id ? ' current-course' : ''}${conflicts.has(course.id) ? ' danger' : ''}" data-course-id="${esc(course.id)}" role="button" tabindex="0" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`; }
           else {
             const currentCourse = getCurrentCourse();
-            const cards = timelineLayout(active).map(({ course, lane, lanes }) => { const top = Math.max(0, (minutesOfDay(course.startTime) - 7 * 60)); const height = Math.max(30, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)); const label = settings.timeLabels === 'each' ? `<div class="timeline-time-label">${esc(course.startTime)}</div>` : ''; const width = 100 / lanes; return `<div class="class-card timeline-card${conflicts.has(course.id) ? ' danger' : ''}${currentCourse?.id === course.id ? ' current-course' : ''}" style="--course-color:${esc(course.color)};top:${top}px;height:${height}px;left:calc(${lane * width}% + 2px);right:auto;width:calc(${width}% - 4px)">${label}<strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`; }).join('');
+            const cards = timelineLayout(active).map(({ course, lane, lanes }) => { const top = Math.max(0, (minutesOfDay(course.startTime) - 7 * 60)); const height = Math.max(30, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)); const label = settings.timeLabels === 'each' ? `<div class="timeline-time-label">${esc(course.startTime)}</div>` : ''; const width = 100 / lanes; return `<div class="class-card timeline-card${conflicts.has(course.id) ? ' danger' : ''}${currentCourse?.id === course.id ? ' current-course' : ''}" data-course-id="${esc(course.id)}" role="button" tabindex="0" style="--course-color:${esc(course.color)};top:${top}px;height:${height}px;left:calc(${lane * width}% + 2px);right:auto;width:calc(${width}% - 4px)">${label}<strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`; }).join('');
             const now = new Date(), nowMinutes = now.getHours() * 60 + now.getMinutes();
             const current = selectedWeek === semesterWeek(now) && day === (now.getDay() || 7) && nowMinutes >= 7 * 60 && nowMinutes <= 22 * 60 ? `<div class="current-time-line" style="top:${nowMinutes - 7 * 60}px"></div>` : '';
             weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3><div class="timeline"><div class="timeline-track">${current}${cards}</div></div></div>`;
@@ -539,7 +560,19 @@
           $('courses').innerHTML = `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`;
           return;
         }
-        $('courses').innerHTML = (await Promise.all(courseGroups().map(async (group) => { const course = group.representative; const details = await Promise.all(group.courses.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`)); const detailText = details.join(' / '); const tasks = openTasksForCourse(course); const synced = group.courses.some((entry) => entry.taskId); return `<article class="course"><div class="course-head"><div><strong>${esc(group.name)}</strong><span class="badge">${tasks.length} ${esc(await tr('UI.OPEN_TASKS'))}</span><span class="badge">${synced ? esc(await tr('UI.SYNCED_STATUS')) : esc(await tr('UI.NOT_SYNCED'))}</span>${group.courses.length > 1 ? `<div class="muted">${group.courses.length} sections</div>` : ''}<div class="muted">${esc(detailText)}</div></div><details class="course-actions"${isMobile() ? '' : ' open'}><summary class="plain">${esc(await tr('UI.ACTIONS'))}</summary><div class="actions"><button class="plain" data-action="assignment" data-group="${esc(group.key)}">${esc(await tr('UI.ADD_TASK'))}</button><button class="plain" data-action="event" data-id="${esc(course.id)}">${esc(await tr('UI.ADD_EVENT'))}</button><button class="plain" data-action="exception" data-id="${esc(course.id)}">${esc(await tr('UI.EXCEPTION'))}</button><button class="plain" data-action="sync" data-group="${esc(group.key)}">${esc(await tr('UI.SYNC'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><button class="plain" data-action="delete" data-group="${esc(group.key)}">${esc(await tr('UI.DELETE'))}</button></div></details></div>${tasks.length ? `<ul class="task-list">${tasks.slice(0,5).map((task) => `<li>${esc(task.title)}</li>`).join('')}</ul>` : ''}${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">${esc(await tr('UI.OPEN_NOTES'))}</a>` : ''}</article>`; }))).join('');
+        $('courses').innerHTML = (await Promise.all(sortedCourseGroups().map(async (group) => {
+          const course = group.representative;
+          const details = await Promise.all(group.courses.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`));
+          const tasks = openTasksForCourse(course);
+          const synced = group.courses.some((entry) => entry.taskId);
+          return `<article class="course" data-course-group="${esc(group.key)}">
+            <div class="course-head"><strong>${esc(group.name)}</strong><span class="badge">${tasks.length} ${esc(await tr('UI.OPEN_TASKS'))}</span><span class="badge">${synced ? esc(await tr('UI.SYNCED_STATUS')) : esc(await tr('UI.NOT_SYNCED'))}</span></div>
+            <div class="course-bottom">
+              <div class="course-description">${group.courses.length > 1 ? `<div class="muted">${group.courses.length} sections</div>` : ''}<div class="muted">${esc(details.join(' / '))}</div>${tasks.length ? `<ul class="task-list">${tasks.slice(0,5).map((task) => `<li>${esc(task.title)}</li>`).join('')}</ul>` : ''}${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">${esc(await tr('UI.OPEN_NOTES'))}</a>` : ''}</div>
+              <details class="course-actions"${isMobile() ? '' : ' open'}><summary class="plain">${esc(await tr('UI.ACTIONS'))}</summary><div class="actions"><button class="plain" data-action="assignment" data-group="${esc(group.key)}">${esc(await tr('UI.ADD_TASK'))}</button><button class="plain" data-action="event" data-id="${esc(course.id)}">${esc(await tr('UI.ADD_EVENT'))}</button><button class="plain" data-action="exception" data-id="${esc(course.id)}">${esc(await tr('UI.EXCEPTION'))}</button><button class="plain" data-action="sync" data-group="${esc(group.key)}">${esc(await tr('UI.SYNC'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><button class="plain" data-action="delete" data-group="${esc(group.key)}">${esc(await tr('UI.DELETE'))}</button></div></details>
+            </div>
+          </article>`;
+        }))).join('');
       }
 
       function openCourse(course) {
@@ -637,6 +670,17 @@
       $('settings-accent').onchange = () => { $('custom-color-row').hidden = $('settings-accent').value !== 'custom'; };
       $('help').onclick = () => $('help-dialog').showModal();
       $('display-mode').onchange = async () => { displayMode = $('display-mode').value; settings.displayMode = displayMode; await saveSettings(); await render(); };
+      $('course-sort').onchange = async () => { settings.courseSort = $('course-sort').value === 'name' ? 'name' : 'time'; await saveSettings(); await renderTimetable(); };
+      function jumpToCourse(courseId) {
+        const group = courseGroups().find((entry) => entry.courses.some((course) => course.id === courseId));
+        const card = [...$('courses').querySelectorAll('[data-course-group]')].find((entry) => entry.dataset.courseGroup === group?.key);
+        if (!card) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('course-jump-highlight');
+        setTimeout(() => card.classList.remove('course-jump-highlight'), 1800);
+      }
+      $('timetable').onclick = (event) => { const card = event.target.closest('[data-course-id]'); if (card) jumpToCourse(card.dataset.courseId); };
+      $('timetable').onkeydown = (event) => { if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-course-id]')) { event.preventDefault(); jumpToCourse(event.target.dataset.courseId); } };
       $('sync-all').onclick = async () => syncCourses(state.courses);
       $('course-cancel').onclick = () => $('course-dialog').close();
       $('assignment-cancel').onclick = () => $('assignment-dialog').close();
