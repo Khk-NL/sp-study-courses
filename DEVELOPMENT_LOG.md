@@ -100,3 +100,9 @@
 - Timetable cards now jump to and briefly highlight the matching course-list card, including when same-name sections are merged. Click and keyboard activation work in compact and timeline layouts.
 - Added course-list sorting by weekly time or name. The selected order is saved in synced UI settings without changing stored course order.
 - Added sort assertions to parser smoke checks and a desktop browser interaction check for layout, sorting, and jump behavior.
+
+### v2.4.2 automatic course category on SP plans
+
+- Synced course plans and assignments now include the SP `课程` tag in addition to each course's selected default tags.
+- Reuse an existing tag and create it through `PluginAPI.addTag` only when needed; if tag APIs are unavailable, keep task creation usable with existing tags.
+- Declared the new `addTag` permission. No core, Electron, or Node-only capability is required by the plugin.

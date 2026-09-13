@@ -72,6 +72,7 @@ Core principles:
 - Save `courseId <-> taskId` associations in synced plugin data.
 - Update a mapped course task after course information changes.
 - Inherit course project, title prefix, and optional tag IDs.
+- Synced course plans and course assignments also carry a shared `课程` SP tag when tag APIs are available; reuse an existing tag before creating one.
 - Never delete SP tasks when deleting plugin data.
 
 ## 5. Import pipeline

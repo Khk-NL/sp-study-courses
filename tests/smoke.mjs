@@ -17,6 +17,10 @@ const element = (id) => {
 };
 let nextId = 0;
 const persisted = new Map();
+const mockTags = [];
+let tagCreates = 0;
+let addedTask = null;
+let updatedTask = null;
 const context = {
   console, Date, TextDecoder, Blob, URL,
   crypto: { randomUUID: () => `test-${++nextId}` },
@@ -37,7 +41,10 @@ const context = {
     cfg: { platform: 'desktop', lang: { code: 'en' } },
     loadSyncedData: async (key) => persisted.get(key) || null,
     persistDataSynced: async (value, key) => persisted.set(key, value),
-    getAllProjects: async () => [], getTasks: async () => [],
+    getAllProjects: async () => [], getAllTags: async () => mockTags, getTasks: async () => [],
+    addTag: async ({ title }) => { tagCreates++; mockTags.push({ id: 'course-tag', title }); return 'course-tag'; },
+    addTask: async (task) => { addedTask = task; return 'sp-course-task'; },
+    updateTask: async (id, task) => { updatedTask = { id, ...task }; },
     translate: async (key) => key, showSnack() {},
   },
 };
@@ -66,6 +73,14 @@ assert.equal(evaluate('conflictIds(state.courses, 1).size'), 2);
 assert.equal(evaluate('weekStatistics(1).totalMinutes'), 120);
 evaluate("state.courses[0].taskPrefix = '[A]'; state.courses[0].tagIds = ['tag-one']");
 assert.equal(evaluate('taskForCourse(state.courses[0]).tagIds[0]'), 'tag-one');
+await evaluate('syncCourseGroup(courseGroups()[0])');
+assert.deepEqual(Array.from(addedTask.tagIds), ['tag-one', 'course-tag']);
+assert.equal(tagCreates, 1);
+await evaluate('syncCourseGroup(courseGroups()[0])');
+assert.ok(updatedTask.tagIds.includes('course-tag'));
+assert.equal(tagCreates, 1, 'existing category tag is reused');
+evaluate('tags = []; PluginAPI.getAllTags = undefined; PluginAPI.addTag = undefined');
+assert.deepEqual(Array.from(await evaluate('courseTaskTagIds(state.courses[0])')), ['tag-one'], 'tag API fallback keeps selected tags');
 evaluate("state.exceptions = [{ id:'x', courseId:'a', week:1, cancelled:true }]");
 assert.equal(evaluate('conflictIds(state.courses, 1).size'), 0);
 assert.equal(evaluate('weekStatistics(1).totalMinutes'), 60);
