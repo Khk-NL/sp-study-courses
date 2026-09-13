@@ -32,8 +32,9 @@ const word = zip({
 });
 const stub = `<script>window.PluginAPI={cfg:{platform:'desktop',lang:{code:'en'}},loadSyncedData:async()=>null,persistDataSynced:async()=>{},getAllProjects:async()=>[],getTasks:async()=>[],translate:async key=>key,showSnack:()=>{}};</script>`;
 const exercise = `<script>(async()=>{try{const decode=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0)).buffer;const x=await parseXlsx(decode('${workbook}'));const d=await parseDocx(decode('${word}'));const h=parseHtml('<table><tr><td>unrelated</td></tr></table><table><tr><th>节次</th><th>Monday</th><th>Tuesday</th></tr><tr><td>1</td><td rowspan="2">Physics 1~8周<br>Room 101</td><td></td></tr><tr><td>2</td><td></td></tr></table>');if(x.length!==1||d.length!==1||h.length!==1)throw Error('wrong course count '+x.length+'/'+d.length+'/'+h.length);if(x[0].weekday!==1||d[0].weekday!==1||h[0].weekday!==1)throw Error('wrong weekday');document.body.insertAdjacentHTML('beforeend','<pre id="office-smoke">PASS XLSX DOCX HTML merged cells multi-sheet</pre>')}catch(error){document.body.insertAdjacentHTML('beforeend','<pre id="office-smoke">FAIL '+error.stack+'</pre>')}}</script>`;
+const mobileExercise = `<script>setTimeout(async()=>{try{if(!isMobile())throw Error('mobile layout not detected');if(activeView!=='today')throw Error('Today is not the default view');if(getComputedStyle(document.querySelector('.bottom-nav')).display!=='grid')throw Error('bottom nav hidden');activeView='timetable';await render();if(document.querySelectorAll('#timetable .day').length!==1)throw Error('mobile timetable is not single-day');document.body.insertAdjacentHTML('beforeend','<pre id="mobile-smoke">PASS mobile Today and single-day timetable</pre>')}catch(error){document.body.insertAdjacentHTML('beforeend','<pre id="mobile-smoke">FAIL '+error.stack+'</pre>')}},100)</script>`;
 const source = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const page = source.replace('<script>', `${stub}<script>`).replace('</body>', `${exercise}</body>`);
+const page = source.replace('<script>', `${stub}<script>`).replace('</body>', `${exercise}${mobileExercise}</body>`);
 const server = createServer((request, response) => { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(page); });
 await new Promise((done) => server.listen(0, '127.0.0.1', done));
 const profile = mkdtempSync(join(tmpdir(), 'sp-study-courses-browser-smoke-'));
@@ -41,7 +42,10 @@ try {
   const browser = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
   const { stdout } = await promisify(execFile)(browser, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, '--virtual-time-budget=10000', '--dump-dom', `http://127.0.0.1:${server.address().port}/`], { maxBuffer: 4 * 1024 * 1024, timeout: 30000 });
   assert.match(stdout, /PASS XLSX DOCX HTML merged cells multi-sheet/);
+  const mobile = await promisify(execFile)(browser, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--window-size=390,844', `--user-data-dir=${profile}`, '--virtual-time-budget=10000', '--dump-dom', `http://127.0.0.1:${server.address().port}/`], { maxBuffer: 4 * 1024 * 1024, timeout: 30000 });
+  assert.match(mobile.stdout, /PASS mobile Today and single-day timetable/);
   console.log('browser Office and HTML import smoke passed');
+  console.log('browser mobile viewport smoke passed');
 } finally {
   server.close();
   if (resolve(profile).startsWith(resolve(tmpdir()) + '\\') && profile.includes('sp-study-courses-browser-smoke-')) rmSync(profile, { recursive: true, force: true });

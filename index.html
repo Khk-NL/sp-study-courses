@@ -144,6 +144,7 @@
     </form></dialog>
 
     <dialog id="import-preview-dialog"><form id="import-preview-form"><h2 data-i18n="UI.IMPORT_PREVIEW">Import preview</h2><div id="import-summary" class="panel"></div><div class="preview-scroll"><table class="preview-table"><thead><tr><th data-i18n="UI.COURSE_NAME">Course</th><th data-i18n="UI.WEEKDAY">Day</th><th data-i18n="UI.START_TIME">Time</th><th data-i18n="UI.WEEKS">Weeks</th><th data-i18n="UI.TEACHER">Teacher</th><th data-i18n="UI.LOCATION">Location</th><th>Status</th></tr></thead><tbody id="import-preview-body"></tbody></table></div><div class="actions"><button id="import-preview-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.IMPORT">Import</button></div></form></dialog>
+    <dialog id="import-edit-dialog"><form id="import-edit-form"><h2 data-i18n="UI.EDIT">Edit</h2><input id="import-edit-index" type="hidden" /><div class="form-grid"><label><span data-i18n="UI.COURSE_NAME">Course</span><input id="import-edit-name" required /></label><label><span data-i18n="UI.WEEKDAY">Day</span><select id="import-edit-weekday"></select></label><label><span data-i18n="UI.START_TIME">Start</span><input id="import-edit-start" type="time" required /></label><label><span data-i18n="UI.END_TIME">End</span><input id="import-edit-end" type="time" required /></label><label><span data-i18n="UI.START_WEEK">Start week</span><input id="import-edit-start-week" type="number" min="1" required /></label><label><span data-i18n="UI.END_WEEK">End week</span><input id="import-edit-end-week" type="number" min="1" required /></label><label><span data-i18n="UI.TEACHER">Teacher</span><input id="import-edit-teacher" /></label><label><span data-i18n="UI.LOCATION">Location</span><input id="import-edit-location" /></label></div><div class="actions"><button id="import-edit-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div></form></dialog>
 
     <dialog id="assignment-dialog">
       <form id="assignment-form">
@@ -187,6 +188,8 @@
       <div class="actions"><button id="export-ics" type="button" class="plain">ICS</button><button id="export-csv" type="button" class="plain">CSV</button><button id="export-json" type="button" class="plain">JSON backup</button><button class="plain" data-i18n="UI.CANCEL">Cancel</button></div>
     </form></dialog>
     <dialog id="mobile-more-dialog"><form method="dialog"><h2 data-i18n="UI.MORE">More</h2><div class="actions"><button id="mobile-export" type="button" class="plain" data-i18n="UI.EXPORT">Export</button><button id="mobile-sync" type="button" class="plain" data-i18n="UI.SYNC_ALL">Sync</button><button id="mobile-help" type="button" class="plain" data-i18n="UI.HELP">Help</button><button id="mobile-settings" type="button" class="plain" data-i18n="UI.SETTINGS">Settings</button><button class="plain" data-i18n="UI.CANCEL">Cancel</button></div></form></dialog>
+    <dialog id="note-link-dialog"><form method="dialog"><h2 data-i18n="UI.OPEN_NOTES">Open course notes</h2><input id="note-link-value" readonly /><div class="actions"><a id="note-link-open" class="plain" target="_blank" rel="noopener" data-i18n="UI.OPEN_NOTES">Open course notes</a><button id="note-link-copy" type="button" class="plain" data-i18n="UI.COPY_LINK">Copy link</button><button class="plain" data-i18n="UI.CLOSE">Close</button></div></form></dialog>
+    <dialog id="export-copy-dialog"><form method="dialog"><h2 data-i18n="UI.EXPORT">Export</h2><p data-i18n="UI.EXPORT_FALLBACK">If the download did not start, copy the file contents below.</p><textarea id="export-copy-data" rows="12" readonly></textarea><div class="actions"><button id="export-copy-button" type="button" class="plain" data-i18n="UI.COPY_EXPORT">Copy contents</button><button class="plain" data-i18n="UI.CLOSE">Close</button></div></form></dialog>
 
     <script>
       let state = { version: 3, semesterId: 'default', semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], events: [], exceptions: [], semesters: {} };
@@ -210,11 +213,19 @@
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { VIEW_TIMETABLE:'课表', VIEW_PLAN:'计划', VIEW_TODAY:'今日', TODAY_COURSES:'今天全部课程', TODAY_TASKS:'今日任务', TODAY_DDL:'今日 DDL', UPCOMING_EVENTS:'即将发生的课程事件', EVENT:'课程事件', EVENT_TYPE:'事件类型', ADD_EVENT:'添加事件', NO_EVENTS:'暂无安排', EXCEPTION:'调课 / 停课', RESET_EXCEPTION:'恢复正常课表', CANCEL_CLASS:'本周停课', TASK_PREFIX:'默认任务标题前缀', ADD_TASK:'添加任务', OPEN_TASKS:'个未完成任务', SYNCED_STATUS:'已同步', NOT_SYNCED:'未同步', OPEN_NOTES:'打开课程笔记', ACTIONS:'课程操作', CONFLICT_CONFIRM:'这门课程至少在一周内与其他课程时间冲突，仍然保存吗？', IMPORT_PREVIEW:'导入预览', VALID:'有效', DUPLICATE:'重复', CONFLICT:'冲突', INVALID:'无效', CORRECTED:'已修正', MORE:'更多', DOCX_PENDING:'DOCX 表格导入将在下一版本完成。当前请使用网页粘贴、HTML、CSV 或 XLSX。' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { OFFICE_UNSUPPORTED:'This device cannot decompress Office files. Try CSV, HTML, or web paste.', XLSX_NO_SHEET:'No timetable worksheet was found in this workbook.', DOCX_IMAGE_ONLY:'This Word file appears to contain only a timetable image. OCR is not supported.', DOCX_NO_TABLE:'No timetable table or supported course paragraphs were found in this Word file.' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { OFFICE_UNSUPPORTED:'当前设备无法解压 Office 文件，请改用 CSV、HTML 或网页粘贴。', XLSX_NO_SHEET:'工作簿中没有找到可识别的课表工作表。', DOCX_IMAGE_ONLY:'Word 文件似乎只有课表图片；目前不支持 OCR。', DOCX_NO_TABLE:'Word 文件中没有找到可识别的课表表格或课程段落。' });
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { COPY_LINK:'Copy link', COPY_MANUAL:'Select and copy the link above if it did not open.', COPIED:'Link copied' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { COPY_LINK:'复制链接', COPY_MANUAL:'若未能打开，请选中并复制上方链接。', COPIED:'链接已复制' });
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { EXPORT_FALLBACK:'If the download did not start, copy the file contents below.', COPY_EXPORT:'Copy contents' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EXPORT_FALLBACK:'如果下载没有开始，可复制下方文件内容。', COPY_EXPORT:'复制内容' });
       const lookup = (object, key) => key.split('.').reduce((value, part) => value?.[part], object);
       const interpolate = (text, params = {}) => text.replace(/\{\{(\w+)\}\}/g, (match, key) => key in params ? String(params[key]) : match);
-      const tr = async (key, params) => settings.language === 'auto' ? PluginAPI.translate(key, params) : interpolate(lookup(LOCAL_TRANSLATIONS[settings.language], key) || lookup(LOCAL_TRANSLATIONS.en, key) || key, params);
+      const tr = async (key, params) => { if (settings.language === 'auto' && typeof PluginAPI.translate === 'function') { const translated = await PluginAPI.translate(key, params); if (translated && translated !== key) return translated; } const language = settings.language === 'auto' ? (/^zh/i.test(PluginAPI.cfg?.lang?.code || navigator.language) ? 'zh' : 'en') : settings.language; return interpolate(lookup(LOCAL_TRANSLATIONS[language], key) || lookup(LOCAL_TRANSLATIONS.en, key) || key, params); };
       const esc = (value) => { const e = document.createElement('div'); e.textContent = value || ''; return e.innerHTML; };
       const uid = () => crypto.randomUUID();
+      const safeObsidianUrl = (value) => /^obsidian:\/\/[^\s<>"']+$/i.test(String(value || '')) ? String(value) : '';
+      function showCourseNotes(course) { const url = safeObsidianUrl(course?.obsidianLink); if (!url) return; $('note-link-value').value = url; $('note-link-open').href = url; $('note-link-dialog').showModal(); }
+      document.addEventListener('click', (event) => { const link = event.target.closest('#courses a[href], #today-view a[href]'); if (!link) return; event.preventDefault(); showCourseNotes({ obsidianLink: link.getAttribute('href') }); });
+      $('note-link-copy').onclick = async () => { const input = $('note-link-value'); try { if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable'); await navigator.clipboard.writeText(input.value); PluginAPI.showSnack?.({ msg: await tr('UI.COPIED'), type: 'SUCCESS' }); } catch (error) { input.focus(); input.select(); PluginAPI.showSnack?.({ msg: await tr('UI.COPY_MANUAL'), type: 'INFO' }); } };
 
       async function load() {
         const raw = await PluginAPI.loadSyncedData('courses');
@@ -438,12 +449,12 @@
           const events = eventsOnDate(date);
           if (!courses.length && !looseTasks.length && !events.length) continue;
           html += `<section class="plan-day"><h3>${esc(await tr(`DAY.${day}`))} · ${esc(date)}</h3>`;
-          for (const course of courses) {
-            const tasks = openTasksForCourse(course).filter((task) => !task.dueDay || task.dueDay === date);
-            html += `<div class="plan-course" style="--course-color:${esc(course.color)}"><strong>${esc(course.startTime)}–${esc(course.endTime)} ${esc(course.name)}</strong><div class="muted">${esc(course.location || '')}</div>${tasks.length ? `<ul class="task-list">${tasks.map((task) => `<li class="task-row">${esc(task.title)}</li>`).join('')}</ul>` : ''}</div>`;
+          const items = [...courses.map((course) => ({ time: course.startTime, kind: 'course', value: course })), ...events.map((event) => ({ time: event.time || '23:59', kind: 'event', value: event })), ...looseTasks.map((task) => ({ time: task.dueTime || '23:59', kind: 'task', value: task }))].sort((a, b) => a.time.localeCompare(b.time));
+          for (const item of items) {
+            if (item.kind === 'course') { const course = item.value; const tasks = openTasksForCourse(course).filter((task) => !task.dueDay || task.dueDay === date); html += `<div class="plan-course" style="--course-color:${esc(course.color)}"><strong>${esc(course.startTime)}–${esc(course.endTime)} ${esc(course.name)}</strong><div class="muted">${esc(course.location || '')}</div>${tasks.length ? `<ul class="task-list">${tasks.map((task) => `<li class="task-row">${esc(task.title)}</li>`).join('')}</ul>` : ''}</div>`; }
+            else if (item.kind === 'event') { const event = item.value; html += `<div class="event-row" data-event-id="${esc(event.id)}">${eventLabel(event)}${event.courseId ? ` · ${esc(state.courses.find((course) => course.id === event.courseId)?.name || '')}` : ''}</div>`; }
+            else html += `<div class="task-row">⏰ ${esc(item.value.title)}</div>`;
           }
-          html += events.map((event) => `<div class="event-row" data-event-id="${esc(event.id)}">${eventLabel(event)}${event.courseId ? ` · ${esc(state.courses.find((course) => course.id === event.courseId)?.name || '')}` : ''}</div>`).join('');
-          html += looseTasks.map((task) => `<div class="task-row">${task.dueDay ? '⏰ ' : ''}${esc(task.title)}</div>`).join('');
           html += `</section>`;
         }
         $('plan-view').innerHTML = html || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`;
@@ -1143,20 +1154,30 @@
       async function addImportedCourses(parsed) {
         const { courses: imported, corrected, skipped, invalid } = validateImportedCourses(parsed);
         if (!imported.length && !invalid.length) { PluginAPI.showSnack({ msg: await tr('UI.IMPORT_EMPTY'), type: 'ERROR' }); return false; }
-        const fingerprints = new Set(state.courses.map((course) => `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
-        const allCourses = [...state.courses, ...imported];
-        const entries = [...imported.map((course) => { const fingerprint = `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase(); const duplicate = fingerprints.has(fingerprint); fingerprints.add(fingerprint); const conflict = Array.from({ length: state.semester.weeks }, (_, index) => index + 1).some((week) => conflictIds(allCourses, week).has(course.id)); return { course, duplicate, conflict, invalid: false, selected: !duplicate }; }), ...invalid.map((course) => ({ course, duplicate: false, conflict: false, invalid: true, selected: false }))];
-        pendingImport = { entries, corrected, skipped };
-        $('import-summary').textContent = `${imported.length} valid · ${corrected} corrected · ${skipped} invalid`;
-        const previewLanguage = settings.language === 'zh' ? 'zh' : 'en';
-        $('import-preview-body').innerHTML = entries.map((entry, index) => { const course = entry.course; const status = entry.invalid ? 'INVALID' : entry.duplicate ? 'DUPLICATE' : entry.conflict ? 'CONFLICT' : course._importCorrected ? 'CORRECTED' : 'VALID'; const day = course.weekday ? lookup(LOCAL_TRANSLATIONS[previewLanguage], `DAY.${course.weekday}`) : '—'; const statusText = lookup(LOCAL_TRANSLATIONS[previewLanguage], `UI.${status}`) || status; return `<tr class="${entry.invalid ? 'danger' : entry.conflict || entry.duplicate ? 'warning' : ''}"><td><label><input type="checkbox" data-import-index="${index}" ${entry.selected ? 'checked' : ''} ${entry.invalid ? 'disabled' : ''} />${esc(course.name || '—')}</label></td><td>${esc(day)}</td><td>${esc(course.startTime || '—')}–${esc(course.endTime || '—')}</td><td>${esc(course.startWeek || '—')}–${esc(course.endWeek || '—')}</td><td>${esc(course.teacher || '')}</td><td>${esc(course.location || '')}</td><td>${esc(statusText)}</td></tr>`; }).join('');
+        pendingImport = { entries: [...imported.map((course) => ({ course, duplicate: false, conflict: false, invalid: false, selected: true })), ...invalid.map((course) => ({ course, duplicate: false, conflict: false, invalid: true, selected: false }))], corrected, skipped };
+        renderImportPreview();
         $('import-preview-dialog').showModal();
         return true;
       }
+      function capturePreviewSelection() {
+        document.querySelectorAll('[data-import-index]').forEach((checkbox) => { pendingImport.entries[Number(checkbox.dataset.importIndex)].selected = checkbox.checked; });
+      }
+      function renderImportPreview() {
+        if (!pendingImport) return;
+        const fingerprints = new Set(state.courses.map((course) => `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
+        const allCourses = [...state.courses, ...pendingImport.entries.filter((entry) => !entry.invalid).map((entry) => entry.course)];
+        pendingImport.entries.forEach((entry) => { if (entry.invalid) return; const course = entry.course, fingerprint = `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase(); entry.duplicate = fingerprints.has(fingerprint); if (entry.duplicate) entry.selected = false; fingerprints.add(fingerprint); entry.conflict = Array.from({ length: state.semester.weeks }, (_, index) => index + 1).some((week) => conflictIds(allCourses, week).has(course.id)); });
+        $('import-summary').textContent = `${pendingImport.entries.filter((entry) => !entry.invalid).length} valid · ${pendingImport.corrected} corrected · ${pendingImport.entries.filter((entry) => entry.invalid).length} invalid`;
+        const previewLanguage = settings.language === 'zh' ? 'zh' : 'en';
+        $('import-preview-body').innerHTML = pendingImport.entries.map((entry, index) => { const course = entry.course; const status = entry.invalid ? 'INVALID' : entry.duplicate ? 'DUPLICATE' : entry.conflict ? 'CONFLICT' : course._importCorrected ? 'CORRECTED' : 'VALID'; const day = course.weekday ? lookup(LOCAL_TRANSLATIONS[previewLanguage], `DAY.${course.weekday}`) : '—'; const statusText = lookup(LOCAL_TRANSLATIONS[previewLanguage], `UI.${status}`) || status; return `<tr class="${entry.invalid ? 'danger' : entry.conflict || entry.duplicate ? 'warning' : ''}"><td><label><input type="checkbox" data-import-index="${index}" ${entry.selected ? 'checked' : ''} ${entry.invalid || entry.duplicate ? 'disabled' : ''} />${esc(course.name || '—')}</label></td><td>${esc(day)}</td><td>${esc(course.startTime || '—')}–${esc(course.endTime || '—')}</td><td>${esc(course.startWeek || '—')}–${esc(course.endWeek || '—')}</td><td>${esc(course.teacher || '')}</td><td>${esc(course.location || '')}</td><td>${esc(statusText)} <button type="button" class="plain" data-preview-edit="${index}">${esc(lookup(LOCAL_TRANSLATIONS[previewLanguage], 'UI.EDIT'))}</button></td></tr>`; }).join('');
+      }
+      $('import-preview-body').onclick = (event) => { const button = event.target.closest('[data-preview-edit]'); if (!button || !pendingImport) return; capturePreviewSelection(); const index = Number(button.dataset.previewEdit), course = pendingImport.entries[index].course; $('import-edit-index').value = index; $('import-edit-name').value = course.name || ''; $('import-edit-weekday').innerHTML = $('weekday').innerHTML; $('import-edit-weekday').value = course.weekday || 1; $('import-edit-start').value = normalizeTime(course.startTime) || ''; $('import-edit-end').value = normalizeTime(course.endTime) || ''; $('import-edit-start-week').value = course.startWeek || 1; $('import-edit-end-week').value = course.endWeek || state.semester.weeks; $('import-edit-teacher').value = course.teacher || ''; $('import-edit-location').value = course.location || ''; $('import-edit-dialog').showModal(); };
+      $('import-edit-cancel').onclick = () => $('import-edit-dialog').close();
+      $('import-edit-form').onsubmit = (event) => { event.preventDefault(); if (!pendingImport) return; const entry = pendingImport.entries[Number($('import-edit-index').value)]; const edited = { ...entry.course, name: $('import-edit-name').value, weekday: Number($('import-edit-weekday').value), startTime: $('import-edit-start').value, endTime: $('import-edit-end').value, startWeek: Number($('import-edit-start-week').value), endWeek: Number($('import-edit-end-week').value), teacher: $('import-edit-teacher').value, location: $('import-edit-location').value }; const result = validateImportedCourses([edited]); if (!result.courses.length) return; entry.course = result.courses[0]; entry.invalid = false; entry.selected = true; $('import-edit-dialog').close(); renderImportPreview(); };
       $('import-preview-cancel').onclick = () => { pendingImport = null; $('import-preview-dialog').close(); };
       $('import-preview-form').onsubmit = async (event) => {
         event.preventDefault(); if (!pendingImport) return;
-        document.querySelectorAll('[data-import-index]').forEach((checkbox) => { pendingImport.entries[Number(checkbox.dataset.importIndex)].selected = checkbox.checked; });
+        capturePreviewSelection();
         const additions = pendingImport.entries.filter((entry) => entry.selected && !entry.invalid && !entry.duplicate).map((entry) => { const course = { ...entry.course }; delete course._importCorrected; return course; });
         state.courses.push(...additions); pendingImport = null; await save(); $('import-preview-dialog').close(); await render(); PluginAPI.showSnack({ msg: await tr('UI.IMPORTED', { count: additions.length }), type: 'SUCCESS' });
       };
@@ -1215,7 +1236,9 @@
         try { if (typeof PluginAPI.downloadFile === 'function') { await PluginAPI.downloadFile(filename, data); return; } } catch (error) { console.error(error); }
         try { const blob = new Blob([data], { type: filename.endsWith('.ics') ? 'text/calendar' : 'text/plain' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
         catch (error) { console.error(error); window.parent.postMessage({ source: 'sp-study-courses', type, filename, data }, '*'); }
+        if (isMobile()) { $('export-copy-data').value = data; $('export-copy-dialog').showModal(); }
       }
+      $('export-copy-button').onclick = async () => { const input = $('export-copy-data'); try { if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable'); await navigator.clipboard.writeText(input.value); PluginAPI.showSnack?.({ msg: await tr('UI.COPIED'), type: 'SUCCESS' }); } catch (error) { input.focus(); input.select(); PluginAPI.showSnack?.({ msg: await tr('UI.COPY_MANUAL'), type: 'INFO' }); } };
       function buildIcs() {
         if (!state.semester.startDate) return;
         const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Super Productivity//Study Courses//EN'];

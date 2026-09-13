@@ -27,6 +27,7 @@ const context = {
   document: {
     body: { dataset: {}, style: { setProperty() {} } },
     visibilityState: 'visible',
+    addEventListener() {},
     getElementById: element,
     querySelectorAll: () => [],
     createElement: () => ({ textContent: '', get innerHTML() { return this.textContent; } }),
@@ -77,4 +78,18 @@ assert.equal(evaluate('pendingImport.entries.length'), 2);
 assert.equal(evaluate('pendingImport.entries[0].conflict'), true);
 assert.equal(evaluate('pendingImport.entries[1].duplicate'), true);
 assert.equal(persisted.get('courses'), beforePreview, 'preview does not save');
+element('import-edit-index').value = '0';
+element('import-edit-name').value = 'Software Engineering Edited';
+element('import-edit-weekday').value = '2';
+element('import-edit-start').value = '14:00';
+element('import-edit-end').value = '15:30';
+element('import-edit-start-week').value = '1';
+element('import-edit-end-week').value = '16';
+element('import-edit-teacher').value = 'Wu';
+element('import-edit-location').value = 'Room 211';
+context.submitEvent = { preventDefault() {} };
+evaluate("$('import-edit-form').onsubmit(submitEvent)");
+assert.equal(evaluate('pendingImport.entries[0].course.name'), 'Software Engineering Edited');
+assert.equal(evaluate('pendingImport.entries[0].course.weekday'), 2);
+assert.equal(persisted.get('courses'), beforePreview, 'editing preview does not save');
 console.log('parser, preview, conflicts, exceptions, ICS, synced persistence smoke passed');

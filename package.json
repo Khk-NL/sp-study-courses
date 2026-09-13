@@ -1,6 +1,6 @@
 {
   "name": "@scsldr/sp-study-courses",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": false,
   "scripts": { "build": "echo 'No build needed for simple plugin'" }
 }

@@ -2,7 +2,7 @@
   "name": "Courses & Timetable",
   "id": "study-courses",
   "manifestVersion": 1,
-  "version": "2.2.0",
+  "version": "2.3.0",
   "minSupVersion": "18.21.2",
   "description": "Course, semester and week-aware timetable for students.",
   "author": "SCSldr",

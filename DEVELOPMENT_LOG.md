@@ -68,3 +68,16 @@
 - DOCX prioritizes Word tables, including `gridSpan`, vertical merges, paragraphs and line breaks; simple weekday/time paragraphs are a fallback. Image-only documents receive a clear no-OCR message.
 - Both formats convert to the existing Grid and timetable parser, then use the same validation and preview gate as CSV/HTML.
 - Added a headless Edge browser smoke test for compressed Office archives, XLSX multi-sheet selection, XLSX merged cells, DOCX vertical merges, and HTML multi-table/rowspan import. Physical Android validation is still pending.
+
+### v2.2.0 delivery
+
+- Commit `7f783cf` was pushed to `main` and tag `v2.2.0` was pushed for the release ZIP workflow.
+
+### v2.3.0 mobile UX and import-preview completion
+
+- Import preview now supports editing each recognized row before saving; invalid rows can be repaired, while duplicate rows stay excluded. Import selection is never persisted until confirmation.
+- Plan items are ordered by time within each day, keeping associated SP tasks under the matching class.
+- Obsidian links open through a user-tapped dialog that also exposes a copyable URL; unsafe schemes are not followed.
+- Mobile export fallback shows copyable ICS/CSV/JSON content if the Plugin API download method is unavailable.
+- Added narrow-screen browser checks for Today-first navigation, visible bottom navigation, and single-day timetable rendering.
+- Added a capability-by-capability Android audit matrix to `REQUIREMENTS.md`. Actual Android installation, iframe, file picker, native downloads and external-link dispatch remain unverified without a device.
