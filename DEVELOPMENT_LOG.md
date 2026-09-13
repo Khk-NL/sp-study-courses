@@ -81,3 +81,15 @@
 - Mobile export fallback shows copyable ICS/CSV/JSON content if the Plugin API download method is unavailable.
 - Added narrow-screen browser checks for Today-first navigation, visible bottom navigation, and single-day timetable rendering.
 - Added a capability-by-capability Android audit matrix to `REQUIREMENTS.md`. Actual Android installation, iframe, file picker, native downloads and external-link dispatch remain unverified without a device.
+
+### v2.3.0 delivery
+
+- Commit `163ae2c` was pushed to `main` and tag `v2.3.0` was pushed for the release ZIP workflow.
+
+### v2.4.0 course templates and statistics
+
+- Added default course tags when `getAllTags` is available; new SP course tasks and assignments inherit project, prefix, and tag IDs. Existing course color and Obsidian URL remain available.
+- Added selected-week and Today statistics for clock hours, early/evening class counts, semester progress, longest free gap, and busiest two-hour interval.
+- Statistics resolve single-week cancellations and reschedules first. Smoke tests cover totals under both conditions and tag inheritance.
+- Added inspectable, anonymized structured CSV, weekly-grid CSV (including a broken-line time), and HTML timetable fixtures. Browser tests continue to generate compressed XLSX/DOCX OOXML samples in memory for multi-sheet and merged-cell coverage.
+- No Android device or emulator/`adb` was available in this environment, so mobile installation and native handoff remain a user-device verification item.

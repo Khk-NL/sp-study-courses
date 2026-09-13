@@ -4,7 +4,7 @@
 
 Manage university courses, teaching weeks, assignments, timetable imports, and calendar exports directly inside Super Productivity.
 
-Version `2.3.0` includes the Timetable, Plan, and Today workbench plus self-contained XLSX and DOCX timetable import. Workbook sheets and Word tables are scored automatically; the best recognized timetable can be edited in the preview before it is saved. Image-only Word documents are not OCRed. See [requirements and Android audit](REQUIREMENTS.md) and the [development log](DEVELOPMENT_LOG.md).
+Version `2.4.0` includes the Timetable, Plan, and Today workbench, self-contained XLSX/DOCX import, editable import preview, course task templates, and lightweight week statistics. Image-only Word documents are not OCRed. See [requirements and Android audit](REQUIREMENTS.md) and the [development log](DEVELOPMENT_LOG.md).
 
 [English](#english) | [中文](#中文)
 
@@ -257,7 +257,7 @@ Super Productivity >= 18.21.2
 - 删除项目
 - 修改无关任务数据
 
-`2.3.0` 已包含「课表 / 计划 / 今日」、课程事件、单周调课与停课、可逐项编辑的导入预览、冲突提示和手机端导航。XLSX 与 DOCX 课表直接在插件内解析，不再从 CDN 加载解析库；多工作表 / 多表格会自动选择识别结果最多的一项。图片型 Word 不做 OCR。旧版 WebView 若不能解压 Office 文件，可改用 CSV、HTML 或粘贴。文件下载优先使用 Plugin API，移动端失败时提供可复制内容；插件运行时不依赖 Electron 或 Node.js。完整任务和 Android 兼容性审计见 [需求文档](REQUIREMENTS.md)，开发过程见 [开发日志](DEVELOPMENT_LOG.md)。
+`2.4.0` 已包含「课表 / 计划 / 今日」、课程事件、单周调课与停课、可逐项编辑的导入预览、冲突提示、课程任务模板、轻量统计和手机端导航。XLSX 与 DOCX 课表直接在插件内解析，不再从 CDN 加载解析库；多工作表 / 多表格会自动选择识别结果最多的一项。图片型 Word 不做 OCR。旧版 WebView 若不能解压 Office 文件，可改用 CSV、HTML 或粘贴。文件下载优先使用 Plugin API，移动端失败时提供可复制内容；插件运行时不依赖 Electron 或 Node.js。完整任务和 Android 兼容性审计见 [需求文档](REQUIREMENTS.md)，开发过程见 [开发日志](DEVELOPMENT_LOG.md)。
 
 ---
 

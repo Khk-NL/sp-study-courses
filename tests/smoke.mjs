@@ -51,20 +51,24 @@ assert.deepEqual(Array.from(evaluate("parseWeekSpec('1~3,5~16周').weeks")), [1,
 assert.equal(evaluate("parseWeekSpec('单周').pattern"), 'odd');
 assert.equal(evaluate("parseWeekSpec('双周').pattern"), 'even');
 
-const structured = '课程名称,教师,地点,星期,开始时间,结束时间,开始周,结束周\n现代软件工程,吴老师,文附楼211,周一,09:50,11:25,1,16';
+const structured = readFileSync(new URL('./fixtures/structured.csv', import.meta.url), 'utf8').trimEnd();
 context.structured = structured;
-assert.equal(evaluate('rowsToCourses(parseCsv(structured)).length'), 1);
+assert.equal(evaluate('rowsToCourses(parseCsv(structured)).length'), 2);
 assert.equal(evaluate('rowsToCourses(parseCsv(structured))[0].name'), '现代软件工程');
 
-const grid = '节次,Monday,Tuesday\n1,Software Engineering\\nTeacher: Wu\\nRoom 211\\n1~3,5~16周,\n2,,Statistics 1~8周';
+const grid = readFileSync(new URL('./fixtures/weekly.csv', import.meta.url), 'utf8').trimEnd();
 context.grid = grid;
 assert.ok(evaluate('rowsToCourses(parseCsv(grid)).length') >= 1);
 
 evaluate("state.semester = { name: 'Test', startDate: '2026-09-07', weeks: 16 }");
 evaluate("state.courses = [{ id:'a', name:'A', weekday:1, startTime:'09:00', endTime:'10:00', startWeek:1, endWeek:16, pattern:'every', customWeeks:[], color:'#3f51b5' }, { id:'b', name:'B', weekday:1, startTime:'09:30', endTime:'10:30', startWeek:1, endWeek:16, pattern:'every', customWeeks:[], color:'#3f51b5' }]");
 assert.equal(evaluate('conflictIds(state.courses, 1).size'), 2);
+assert.equal(evaluate('weekStatistics(1).totalMinutes'), 120);
+evaluate("state.courses[0].taskPrefix = '[A]'; state.courses[0].tagIds = ['tag-one']");
+assert.equal(evaluate('taskForCourse(state.courses[0]).tagIds[0]'), 'tag-one');
 evaluate("state.exceptions = [{ id:'x', courseId:'a', week:1, cancelled:true }]");
 assert.equal(evaluate('conflictIds(state.courses, 1).size'), 0);
+assert.equal(evaluate('weekStatistics(1).totalMinutes'), 60);
 assert.equal(evaluate('occurrenceFor(state.courses[0], 1)'), null);
 evaluate("state.exceptions = [{ id:'x', courseId:'a', week:1, cancelled:false, weekday:2, startTime:'14:00', endTime:'15:00', location:'New room' }]");
 assert.equal(evaluate('occurrenceFor(state.courses[0], 1).course.weekday'), 2);
@@ -74,9 +78,9 @@ await evaluate('save()');
 assert.ok(JSON.parse(persisted.get('courses')).semesters.default.exceptions.length === 1);
 const beforePreview = persisted.get('courses');
 await evaluate('addImportedCourses(rowsToCourses(parseCsv(structured + "\\n现代软件工程,吴老师,文附楼211,周一,09:50,11:25,1,16")))');
-assert.equal(evaluate('pendingImport.entries.length'), 2);
+assert.equal(evaluate('pendingImport.entries.length'), 3);
 assert.equal(evaluate('pendingImport.entries[0].conflict'), true);
-assert.equal(evaluate('pendingImport.entries[1].duplicate'), true);
+assert.equal(evaluate('pendingImport.entries[2].duplicate'), true);
 assert.equal(persisted.get('courses'), beforePreview, 'preview does not save');
 element('import-edit-index').value = '0';
 element('import-edit-name').value = 'Software Engineering Edited';

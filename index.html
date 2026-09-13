@@ -47,6 +47,7 @@
       .help-copy { max-height: 68vh; overflow: auto; line-height: 1.6; }
       .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--s); }
       .stat { padding: var(--s2); border: 1px solid var(--divider-color); border-radius: 6px; }
+      #course-tag-choices label { display: inline-flex; align-items: center; gap: 6px; } #course-tag-choices input { width: auto; min-height: 20px; }
       .mobile-only, .bottom-nav { display: none; }
       .class-time, .muted { color: var(--text-color-muted); font-size: .9rem; }
       label { display: grid; gap: var(--s-half); }
@@ -98,7 +99,8 @@
       <nav class="view-tabs" aria-label="Workspace views"><button class="plain view-tab active" data-view="timetable" data-i18n="UI.VIEW_TIMETABLE">Timetable</button><button class="plain view-tab" data-view="plan" data-i18n="UI.VIEW_PLAN">Plan</button><button class="plain view-tab" data-view="today" data-i18n="UI.VIEW_TODAY">Today</button></nav>
       <section id="view-timetable" class="view-panel">
         <div class="week-nav"><button id="prev" class="plain" data-i18n="UI.PREVIOUS">Previous</button><strong id="week-label"></strong><button id="next" class="plain" data-i18n="UI.NEXT">Next</button><select id="display-mode" class="display-toggle" aria-label="Display mode"><option value="timeline" data-i18n="UI.TIMELINE">Timeline</option><option value="list" data-i18n="UI.LIST">Compact list</option></select></div>
-        <section class="panel status" aria-live="polite"><div id="current-status" class="status-main"></div><div id="next-status" class="muted"></div></section>
+         <section class="panel status" aria-live="polite"><div id="current-status" class="status-main"></div><div id="next-status" class="muted"></div></section>
+         <section id="week-stats" class="stats" aria-label="Week statistics"></section>
         <section id="timetable" class="week-grid"></section>
         <section><h2 data-i18n="UI.COURSES">Courses</h2><div id="courses"></div></section>
       </section>
@@ -125,6 +127,7 @@
           <label><span data-i18n="UI.PROJECT">Assignment project</span><select id="project"></select></label>
           <label><span data-i18n="UI.TASK_PREFIX">Task title prefix</span><input id="task-prefix" placeholder="[Course]" /></label>
         </div>
+        <div id="course-tags-row"><span data-i18n="UI.TAGS">Default tags</span><div id="course-tag-choices" class="actions"></div></div>
         <label><span data-i18n="UI.NOTE">Note</span><textarea id="note" rows="3"></textarea></label>
         <label><span data-i18n="UI.OBSIDIAN_LINK">Obsidian link</span><input id="obsidian-link" placeholder="obsidian://open?..." /></label>
         <div class="actions"><button id="course-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
@@ -195,6 +198,7 @@
       let state = { version: 3, semesterId: 'default', semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], events: [], exceptions: [], semesters: {} };
       let settings = { density: 'comfortable', language: 'auto', accent: 'theme', customColor: '#3b82f6', showWeekends: true, displayMode: 'timeline', mergeNames: false, timeLabels: 'shared' };
       let projects = [];
+      let tags = [];
       let selectedWeek = 1;
       let displayMode = 'timeline';
       let activeView = 'timetable';
@@ -217,10 +221,12 @@
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { COPY_LINK:'复制链接', COPY_MANUAL:'若未能打开，请选中并复制上方链接。', COPIED:'链接已复制' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { EXPORT_FALLBACK:'If the download did not start, copy the file contents below.', COPY_EXPORT:'Copy contents' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EXPORT_FALLBACK:'如果下载没有开始，可复制下方文件内容。', COPY_EXPORT:'复制内容' });
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { TAGS:'Default tags', STAT_WEEK_HOURS:'This week', STAT_TODAY_HOURS:'Today', STAT_EARLY:'Early classes', STAT_LATE:'Evening classes', STAT_PROGRESS:'Semester progress', STAT_FREE:'Longest free gap', STAT_BUSY:'Busiest two hours' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { TAGS:'默认标签', STAT_WEEK_HOURS:'本周上课时长', STAT_TODAY_HOURS:'今日上课时长', STAT_EARLY:'早八次数', STAT_LATE:'晚课次数', STAT_PROGRESS:'学期进度', STAT_FREE:'本周最长空档', STAT_BUSY:'本周最忙两小时' });
       const lookup = (object, key) => key.split('.').reduce((value, part) => value?.[part], object);
       const interpolate = (text, params = {}) => text.replace(/\{\{(\w+)\}\}/g, (match, key) => key in params ? String(params[key]) : match);
       const tr = async (key, params) => { if (settings.language === 'auto' && typeof PluginAPI.translate === 'function') { const translated = await PluginAPI.translate(key, params); if (translated && translated !== key) return translated; } const language = settings.language === 'auto' ? (/^zh/i.test(PluginAPI.cfg?.lang?.code || navigator.language) ? 'zh' : 'en') : settings.language; return interpolate(lookup(LOCAL_TRANSLATIONS[language], key) || lookup(LOCAL_TRANSLATIONS.en, key) || key, params); };
-      const esc = (value) => { const e = document.createElement('div'); e.textContent = value || ''; return e.innerHTML; };
+      const esc = (value) => { const e = document.createElement('div'); e.textContent = value ?? ''; return e.innerHTML; };
       const uid = () => crypto.randomUUID();
       const safeObsidianUrl = (value) => /^obsidian:\/\/[^\s<>"']+$/i.test(String(value || '')) ? String(value) : '';
       function showCourseNotes(course) { const url = safeObsidianUrl(course?.obsidianLink); if (!url) return; $('note-link-value').value = url; $('note-link-open').href = url; $('note-link-dialog').showModal(); }
@@ -258,6 +264,7 @@
         settings.timeLabels = settings.timeLabels === 'each' ? 'each' : 'shared';
         if (!['theme', 'blue', 'green', 'orange', 'purple', 'custom'].includes(settings.accent)) settings.accent = 'blue';
         try { projects = typeof PluginAPI.getAllProjects === 'function' ? await PluginAPI.getAllProjects() : []; } catch (error) { console.error(error); projects = []; }
+        try { tags = typeof PluginAPI.getAllTags === 'function' ? await PluginAPI.getAllTags() : []; if (!Array.isArray(tags)) tags = []; } catch (error) { console.error(error); tags = []; }
         try { spTasks = typeof PluginAPI.getTasks === 'function' ? await PluginAPI.getTasks() : []; } catch (error) { console.error(error); spTasks = []; }
         if (state.semester.startDate && !initialized) {
           selectedWeek = Math.max(1, Math.min(state.semester.weeks, Math.floor((Date.now() - new Date(`${state.semester.startDate}T00:00:00`).getTime()) / 604800000) + 1));
@@ -395,6 +402,29 @@
       }
 
       function getCurrentCourse() { return liveContext().current; }
+      const clockTime = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+      function weekStatistics(week) {
+        const courses = week >= 1 && week <= state.semester.weeks ? coursesForWeek(week) : [];
+        const today = new Date().getDay() || 7;
+        const totalMinutes = courses.reduce((sum, course) => sum + Math.max(0, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)), 0);
+        const todayMinutes = courses.filter((course) => Number(course.weekday) === today).reduce((sum, course) => sum + Math.max(0, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)), 0);
+        let freeGap = null, busySlot = null;
+        for (const day of [1,2,3,4,5,6,7]) {
+          const daily = courses.filter((course) => Number(course.weekday) === day).sort((a,b) => a.startTime.localeCompare(b.startTime));
+          let occupiedUntil = null;
+          for (const course of daily) { const from = occupiedUntil, to = minutesOfDay(course.startTime); if (from !== null && to > from && (!freeGap || to - from > freeGap.length)) freeGap = { day, from, to, length: to - from }; occupiedUntil = Math.max(occupiedUntil || 0, minutesOfDay(course.endTime)); }
+          for (let from = 8 * 60; from <= 20 * 60; from += 60) { const load = daily.reduce((sum, course) => sum + Math.max(0, Math.min(from + 120, minutesOfDay(course.endTime)) - Math.max(from, minutesOfDay(course.startTime))), 0); if (load > 0 && (!busySlot || load > busySlot.load)) busySlot = { day, from, to: from + 120, load }; }
+        }
+        const currentWeek = semesterWeek(new Date());
+        return { totalMinutes, todayMinutes, earlyCount: courses.filter((course) => minutesOfDay(course.startTime) < 9 * 60).length, lateCount: courses.filter((course) => minutesOfDay(course.startTime) >= 18 * 60).length, progress: Math.round(Math.max(0, Math.min(state.semester.weeks, currentWeek || 0)) / state.semester.weeks * 100) || 0, freeGap, busySlot };
+      }
+      async function statisticsHtml(week) {
+        const stats = weekStatistics(week);
+        const gap = stats.freeGap ? `${await tr(`DAY.${stats.freeGap.day}`)} ${clockTime(stats.freeGap.from)}–${clockTime(stats.freeGap.to)}` : '—';
+        const busy = stats.busySlot ? `${await tr(`DAY.${stats.busySlot.day}`)} ${clockTime(stats.busySlot.from)}–${clockTime(stats.busySlot.to)}` : '—';
+        const items = [['UI.STAT_WEEK_HOURS', `${(stats.totalMinutes / 60).toFixed(1)} h`], ['UI.STAT_TODAY_HOURS', `${(stats.todayMinutes / 60).toFixed(1)} h`], ['UI.STAT_EARLY', stats.earlyCount], ['UI.STAT_LATE', stats.lateCount], ['UI.STAT_PROGRESS', `${stats.progress}%`], ['UI.STAT_FREE', gap], ['UI.STAT_BUSY', busy]];
+        return (await Promise.all(items.map(async ([key, value]) => `<div class="stat"><div class="muted">${esc(await tr(key))}</div><strong>${esc(value)}</strong></div>`))).join('');
+      }
 
       async function renderStatus() {
         const context = liveContext();
@@ -466,7 +496,7 @@
         const noteLink = context.current?.obsidianLink ? `<a class="plain" href="${esc(context.current.obsidianLink)}">${esc(await tr('UI.OPEN_NOTES'))}</a>` : '';
         const currentCountdown = context.current ? await tr('UI.UNTIL_END', { minutes: minutesOfDay(context.current.endTime) - context.currentMinutes }) : '';
         const nextCountdown = context.next ? await tr('UI.SINCE_START', { minutes: Math.max(1, Math.ceil((context.next.start.getTime() - now.getTime()) / 60000)) }) : '';
-        $('today-view').innerHTML = `<section class="panel status"><h2>${esc(await tr('UI.VIEW_TODAY'))} · ${esc(date)}</h2><div class="status-main">${context.current ? esc(await tr('UI.CURRENT', { name: context.current.name, time: `${context.current.startTime}-${context.current.endTime}` })) : esc(await tr('UI.FREE_NOW'))}</div><div class="muted">${esc(currentCountdown)}</div><div class="muted">${context.next ? esc(await tr('UI.NEXT_CLASS', { name: context.next.course.name, time: `${localDate(context.next.start)} ${context.next.course.startTime}` })) : esc(await tr('UI.NO_NEXT'))} · ${esc(nextCountdown)}</div>${noteLink}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_COURSES'))}</h3>${courses.map((course) => `<div class="plan-course" style="--course-color:${esc(course.color)}"><strong>${esc(course.startTime)}–${esc(course.endTime)} ${esc(course.name)}</strong><div class="muted">${esc(course.location || '')}</div></div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_TASKS'))}</h3>${tasks.map((task) => `<div class="task-row">${esc(task.title)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_DDL'))}</h3>${events.map((event) => `<div class="event-row">${eventLabel(event)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.UPCOMING_EVENTS'))}</h3>${upcoming.map((event) => `<div class="event-row">${esc(event.date)} ${eventLabel(event)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section>`;
+        $('today-view').innerHTML = `<section class="panel status"><h2>${esc(await tr('UI.VIEW_TODAY'))} · ${esc(date)}</h2><div class="status-main">${context.current ? esc(await tr('UI.CURRENT', { name: context.current.name, time: `${context.current.startTime}-${context.current.endTime}` })) : esc(await tr('UI.FREE_NOW'))}</div><div class="muted">${esc(currentCountdown)}</div><div class="muted">${context.next ? esc(await tr('UI.NEXT_CLASS', { name: context.next.course.name, time: `${localDate(context.next.start)} ${context.next.course.startTime}` })) : esc(await tr('UI.NO_NEXT'))} · ${esc(nextCountdown)}</div>${noteLink}</section><section class="stats">${await statisticsHtml(context.week || 0)}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_COURSES'))}</h3>${courses.map((course) => `<div class="plan-course" style="--course-color:${esc(course.color)}"><strong>${esc(course.startTime)}–${esc(course.endTime)} ${esc(course.name)}</strong><div class="muted">${esc(course.location || '')}</div></div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_TASKS'))}</h3>${tasks.map((task) => `<div class="task-row">${esc(task.title)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_DDL'))}</h3>${events.map((event) => `<div class="event-row">${eventLabel(event)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.UPCOMING_EVENTS'))}</h3>${upcoming.map((event) => `<div class="event-row">${esc(event.date)} ${eventLabel(event)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section>`;
       }
       async function render() {
         document.querySelectorAll('.view-panel').forEach((panel) => { panel.hidden = panel.id !== `view-${activeView}`; });
@@ -504,6 +534,7 @@
         }
         $('timetable').innerHTML = weekHtml;
         await renderStatus();
+        $('week-stats').innerHTML = await statisticsHtml(selectedWeek);
         if (!state.courses.length) {
           $('courses').innerHTML = `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`;
           return;
@@ -528,6 +559,8 @@
         $('note').value = course?.note || '';
         $('obsidian-link').value = course?.obsidianLink || '';
         $('task-prefix').value = course?.taskPrefix || '[Course]';
+        $('course-tags-row').hidden = !tags.length;
+        $('course-tag-choices').innerHTML = tags.map((tag) => `<label class="plain"><input type="checkbox" data-course-tag="${esc(tag.id)}" ${course?.tagIds?.includes(tag.id) ? 'checked' : ''} />${esc(tag.title)}</label>`).join('');
         $('course-dialog').showModal();
       }
 
@@ -648,7 +681,7 @@
           weekday: Number($('weekday').value), startTime: $('start-time').value, endTime: $('end-time').value,
           startWeek: Number($('start-week').value), endWeek: Number($('end-week').value), pattern: $('pattern').value,
           customWeeks: $('custom-weeks').value.split(',').map(Number).filter(Number.isInteger), color: $('color').value,
-          projectId: $('project').value || null, note: $('note').value.trim(), obsidianLink: $('obsidian-link').value.trim() || null, taskPrefix: $('task-prefix').value.trim() || '[Course]', tagIds: old?.tagIds || [],
+          projectId: $('project').value || null, note: $('note').value.trim(), obsidianLink: $('obsidian-link').value.trim() || null, taskPrefix: $('task-prefix').value.trim() || '[Course]', tagIds: tags.length ? Array.from(document.querySelectorAll('[data-course-tag]:checked')).map((input) => input.dataset.courseTag) : old?.tagIds || [],
         };
         const otherCourses = state.courses.filter((entry) => entry.id !== course.id);
         const hasConflict = Array.from({ length: state.semester.weeks }, (_, index) => index + 1).some((week) => conflictIds([...otherCourses, course], week).has(course.id));
