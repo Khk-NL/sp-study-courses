@@ -4,6 +4,8 @@
 
 Manage university courses, teaching weeks, assignments, timetable imports, and calendar exports directly inside Super Productivity.
 
+The current `2.1.0` workbench adds Timetable, Plan, and Today views, course events, one-week rescheduling/cancellation, import preview, conflict warnings, and mobile navigation. DOCX table import and offline XLSX parsing are planned next; the current XLSX importer still loads SheetJS from a CDN and therefore requires network access.
+
 [English](#english) | [中文](#中文)
 
 ---
@@ -63,6 +65,8 @@ Manage university courses, teaching weeks, assignments, timetable imports, and c
 6. Restart Super Productivity if requested.
 7. Open **Courses & Timetable** from the plugin entry.
 
+Install the plugin ZIP separately on each computer or phone where you use it. Once the same plugin ID is installed and SP sync is configured, semester, course, event, exception, mapping, and display data use SP synced plugin storage. Syncing data does not install plugin code. Android compatibility depends on whether your SP build exposes plugin installation and the iframe Plugin API; this has not yet been verified on a physical device.
+
 ### Compatibility
 
 Requires:
@@ -110,6 +114,8 @@ The plugin does **not**:
 - Delete Super Productivity tasks
 - Delete projects
 - Modify unrelated task data
+
+Mobile fallbacks: paste plain text if clipboard HTML is unavailable; use CSV/HTML or paste if XLSX cannot load; DOCX currently shows an explicit not-yet-supported message. Downloads use the Plugin API when available and a browser download fallback otherwise. The plugin does not use Electron or Node.js APIs at runtime.
 
 ---
 
@@ -201,6 +207,8 @@ Compress-Archive `
 6. 如有提示，重启 Super Productivity
 7. 从插件入口打开 **Courses & Timetable**
 
+电脑和手机需分别安装一次插件 ZIP。安装相同插件 ID 并配置 SP 同步后，学期、课程、事件、调课、任务对应关系和界面设置使用 SP 插件同步存储；数据同步不会自动安装插件代码。Android 端能否安装并加载插件还需在实际设备和对应 SP 版本上验证。
+
 ### 兼容性
 
 需要：
@@ -248,6 +256,8 @@ Super Productivity >= 18.21.2
 - 删除 Super Productivity 任务
 - 删除项目
 - 修改无关任务数据
+
+`2.1.0` 工作台增加了「课表 / 计划 / 今日」、课程事件、单周调课与停课、导入预览、冲突提示和手机端导航。当前 XLSX 仍通过 CDN 加载解析库，离线时可改用 CSV、HTML 或粘贴；DOCX 导入正在完善，当前会给出明确提示。剪贴板没有 HTML 时可粘贴纯文本；文件下载优先使用 Plugin API，并尝试浏览器下载。插件运行时不依赖 Electron 或 Node.js。
 
 ---
 

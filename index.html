@@ -19,7 +19,7 @@
       .timeline { position: relative; min-height: 900px; border-top: 1px solid var(--divider-color); background: repeating-linear-gradient(to bottom, transparent 0, transparent 59px, var(--divider-color) 60px); }
       .timeline-hours { position: relative; height: 900px; color: var(--text-color-muted); font-size: .72rem; }
       .timeline-hours span { position: absolute; left: 0; transform: translateY(-.5em); }
-      .timeline-track { position: relative; min-width: 0; }
+      .timeline-track { position: relative; min-width: 0; height: 900px; }
       .timeline-card { position: absolute; left: 2px; right: 2px; min-height: 30px; overflow: hidden; margin: 0; padding: var(--s-half); font-size: .82rem; }
       .timeline-card strong, .timeline-card .muted { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .timeline-card .class-time { font-size: .75rem; }
@@ -27,6 +27,27 @@
       .timeline-axis { min-width: 42px; padding-top: 31px; }
       .timeline-shared .timeline-card .class-time { display: none; }
       .display-toggle { margin-left: auto; }
+      .view-tabs { display: flex; gap: 4px; margin: var(--s2) 0; padding: 4px; border: 1px solid var(--divider-color); border-radius: 8px; width: fit-content; }
+      .view-tab.active { color: var(--text-color-most-intense); background: var(--plugin-accent, var(--c-accent)); border-color: transparent; }
+      .view-panel[hidden] { display: none; }
+      .current-time-line { position: absolute; left: 0; right: 0; z-index: 4; border-top: 2px solid #ef4444; pointer-events: none; }
+      .current-time-line::before { content: ''; position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+      .current-course { outline: 2px solid var(--plugin-accent, var(--c-accent)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--plugin-accent, var(--c-accent)) 20%, transparent); }
+      .plan-day, .today-block { margin-bottom: var(--s3); }
+      .plan-course { border-left: 4px solid var(--course-color, var(--plugin-accent)); padding: var(--s2); margin: var(--s) 0; background: color-mix(in srgb, var(--plugin-accent, var(--c-accent)) 6%, transparent); }
+      .task-list { margin: var(--s) 0 0; padding-left: 22px; }
+      .task-row, .event-row { margin: 6px 0; }
+      .badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: .72rem; background: color-mix(in srgb, var(--plugin-accent, var(--c-accent)) 18%, transparent); }
+      .course-actions { display: contents; } .course-actions > summary { display: none; }
+      .warning { color: #b45309; }
+      .danger { color: #dc2626; }
+      .preview-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+      .preview-table th, .preview-table td { padding: 6px; border-bottom: 1px solid var(--divider-color); text-align: left; }
+      .preview-scroll { max-height: 55vh; overflow: auto; }
+      .help-copy { max-height: 68vh; overflow: auto; line-height: 1.6; }
+      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--s); }
+      .stat { padding: var(--s2); border: 1px solid var(--divider-color); border-radius: 6px; }
+      .mobile-only, .bottom-nav { display: none; }
       .class-time, .muted { color: var(--text-color-muted); font-size: .9rem; }
       label { display: grid; gap: var(--s-half); }
       [hidden] { display: none !important; }
@@ -45,12 +66,21 @@
       .primary { background: var(--plugin-accent, var(--c-accent)); }
       body[data-density="compact"] { --s3: 16px; --s2: 10px; --s: 6px; }
       .hidden-input { display: none; }
-      @media (max-width: 680px) { .semester-grid, .form-grid { grid-template-columns: 1fr; } .week-grid { grid-template-columns: repeat(5, minmax(112px, 1fr)); } .week-grid.with-time-axis { grid-template-columns: 42px repeat(var(--day-count), minmax(112px, 1fr)); } .toolbar { align-items: flex-start; } .toolbar .actions { width: 100%; } .toolbar .actions button { flex: 1 1 140px; } }
+      @media (max-width: 680px) {
+        body { padding: 10px 10px 76px; } .page { max-width: 100%; } .semester-grid, .form-grid { grid-template-columns: 1fr; }
+        .toolbar { align-items: flex-start; } .toolbar h1 { font-size: 1.2rem; } .toolbar .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr auto; }
+        .toolbar #export, .toolbar #sync-all, .toolbar #help, .toolbar #settings { display: none; } .mobile-only { display: inline-flex; }
+        .week-grid, .week-grid.with-time-axis { display: block; overflow: visible; } .timeline-axis { display: none; } .day { min-width: 0; } .class-card { min-height: 44px; }
+        .view-tabs { display: none; } .course-head { align-items: flex-start; } .course-actions { display: block; width: 100%; } .course-actions > summary { display: block; list-style: none; text-align: center; } .course-actions > .actions { margin-top: 8px; width: 100%; } .course-actions > .actions button { min-width: 44px; flex: 1 1 110px; }
+        button, summary, input, select { min-height: 44px; } dialog { box-sizing: border-box; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 0; border: 0; } dialog form { min-height: calc(100dvh - 32px); align-content: start; }
+        .preview-table, .preview-table tbody, .preview-table tr, .preview-table td { display: block; width: 100%; box-sizing: border-box; } .preview-table thead { display: none; } .preview-table tr { margin-bottom: 10px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 8px; } .preview-table td { border: 0; padding: 3px 0; }
+        .bottom-nav { position: fixed; display: grid; grid-template-columns: repeat(4, 1fr); left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 1px solid var(--divider-color); padding: 4px env(safe-area-inset-right) calc(4px + env(safe-area-inset-bottom)) env(safe-area-inset-left); } .bottom-nav button { border: 0; background: transparent; color: inherit; }
+      }
     </style>
   </head>
   <body>
     <main class="page">
-      <div class="toolbar"><h1 data-i18n="UI.TITLE">Courses & Timetable</h1><div class="actions"><button id="settings" class="plain" data-i18n="UI.SETTINGS">Settings</button><button id="help" class="plain" data-i18n="UI.HELP">Help</button><button id="import" class="plain" data-i18n="UI.IMPORT">Import file</button><button id="paste-import" class="plain" data-i18n="UI.PASTE_IMPORT">Paste timetable</button><button id="export" class="plain" data-i18n="UI.EXPORT">Export</button><button id="sync-all" class="plain" data-i18n="UI.SYNC_ALL">Sync to plan</button><button id="add" class="primary" data-i18n="UI.ADD_COURSE">Add course</button></div></div>
+      <div class="toolbar"><h1 data-i18n="UI.TITLE">Courses & Timetable</h1><div class="actions"><button id="import" class="plain" data-i18n="UI.IMPORT">Import</button><button id="export" class="plain" data-i18n="UI.EXPORT">Export</button><button id="sync-all" class="plain" data-i18n="UI.SYNC_ALL">Sync</button><button id="add" class="primary" data-i18n="UI.ADD_COURSE">Add course</button><button id="help" class="plain" data-i18n="UI.HELP">Help</button><button id="settings" class="plain" data-i18n="UI.SETTINGS">Settings</button><button id="mobile-more" class="plain mobile-only" aria-label="More">⋮</button></div></div>
       <input id="import-file" class="hidden-input" type="file" accept=".csv,.html,.htm,.xlsx,text/csv,text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
       <section class="panel semester-switcher">
         <label><span data-i18n="UI.CURRENT_SEMESTER">Current semester</span><select id="semester-select"></select></label>
@@ -65,10 +95,16 @@
         </div>
         <div class="actions"><button id="semester-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button id="save-semester" class="primary" data-i18n="UI.SAVE_SEMESTER">Save semester</button></div>
       </form></dialog>
-      <div class="week-nav"><button id="prev" class="plain" data-i18n="UI.PREVIOUS">Previous</button><strong id="week-label"></strong><button id="next" class="plain" data-i18n="UI.NEXT">Next</button><select id="display-mode" class="display-toggle" aria-label="Display mode"><option value="timeline" data-i18n="UI.TIMELINE">Timeline</option><option value="list" data-i18n="UI.LIST">Compact list</option></select></div>
-      <section class="panel status" aria-live="polite"><div id="current-status" class="status-main"></div><div id="next-status" class="muted"></div></section>
-      <section id="timetable" class="week-grid"></section>
-      <section><h2 data-i18n="UI.COURSES">Courses</h2><div id="courses"></div></section>
+      <nav class="view-tabs" aria-label="Workspace views"><button class="plain view-tab active" data-view="timetable" data-i18n="UI.VIEW_TIMETABLE">Timetable</button><button class="plain view-tab" data-view="plan" data-i18n="UI.VIEW_PLAN">Plan</button><button class="plain view-tab" data-view="today" data-i18n="UI.VIEW_TODAY">Today</button></nav>
+      <section id="view-timetable" class="view-panel">
+        <div class="week-nav"><button id="prev" class="plain" data-i18n="UI.PREVIOUS">Previous</button><strong id="week-label"></strong><button id="next" class="plain" data-i18n="UI.NEXT">Next</button><select id="display-mode" class="display-toggle" aria-label="Display mode"><option value="timeline" data-i18n="UI.TIMELINE">Timeline</option><option value="list" data-i18n="UI.LIST">Compact list</option></select></div>
+        <section class="panel status" aria-live="polite"><div id="current-status" class="status-main"></div><div id="next-status" class="muted"></div></section>
+        <section id="timetable" class="week-grid"></section>
+        <section><h2 data-i18n="UI.COURSES">Courses</h2><div id="courses"></div></section>
+      </section>
+      <section id="view-plan" class="view-panel" hidden><div id="plan-view"></div></section>
+      <section id="view-today" class="view-panel" hidden><div id="today-view"></div></section>
+      <nav class="bottom-nav"><button data-mobile-view="today" data-i18n="UI.VIEW_TODAY">Today</button><button data-mobile-view="timetable" data-i18n="UI.VIEW_TIMETABLE">Timetable</button><button data-mobile-view="plan" data-i18n="UI.VIEW_PLAN">Plan</button><button data-mobile-view="courses" data-i18n="UI.COURSES">Courses</button></nav>
     </main>
 
     <dialog id="course-dialog">
@@ -87,12 +123,27 @@
           <label><span data-i18n="UI.CUSTOM_WEEKS">Custom weeks</span><input id="custom-weeks" placeholder="1,3,5" /></label>
           <label><span data-i18n="UI.COLOR">Color</span><input id="color" type="color" value="#3f51b5" /></label>
           <label><span data-i18n="UI.PROJECT">Assignment project</span><select id="project"></select></label>
+          <label><span data-i18n="UI.TASK_PREFIX">Task title prefix</span><input id="task-prefix" placeholder="[Course]" /></label>
         </div>
         <label><span data-i18n="UI.NOTE">Note</span><textarea id="note" rows="3"></textarea></label>
         <label><span data-i18n="UI.OBSIDIAN_LINK">Obsidian link</span><input id="obsidian-link" placeholder="obsidian://open?..." /></label>
         <div class="actions"><button id="course-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
       </form>
     </dialog>
+
+    <dialog id="event-dialog"><form id="event-form">
+      <input id="event-id" type="hidden" /><h2 data-i18n="UI.EVENT">Course event</h2>
+      <div class="form-grid"><label><span data-i18n="UI.COURSE_NAME">Course</span><select id="event-course"></select></label><label><span data-i18n="UI.EVENT_TYPE">Type</span><select id="event-type"><option value="assignment">Assignment</option><option value="exam">Exam</option><option value="quiz">Quiz</option><option value="report">Report</option><option value="presentation">Presentation</option><option value="custom">Custom</option></select></label><label><span data-i18n="UI.ASSIGNMENT_TITLE">Title</span><input id="event-title" required /></label><label><span data-i18n="UI.DUE_DAY">Date</span><input id="event-date" type="date" required /></label><label><span data-i18n="UI.START_TIME">Time</span><input id="event-time" type="time" /></label><label><span>SP taskId</span><input id="event-task-id" /></label></div>
+      <label><span data-i18n="UI.NOTE">Notes</span><textarea id="event-notes" rows="3"></textarea></label><div class="actions"><button id="event-delete" type="button" class="plain danger" data-i18n="UI.DELETE">Delete</button><button id="event-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
+    </form></dialog>
+
+    <dialog id="exception-dialog"><form id="exception-form">
+      <input id="exception-course-id" type="hidden" /><h2 data-i18n="UI.EXCEPTION">Class exception</h2>
+      <div class="form-grid"><label><span data-i18n="UI.WEEK">Week</span><input id="exception-week" type="number" min="1" required /></label><label><input id="exception-cancelled" type="checkbox" /><span data-i18n="UI.CANCEL_CLASS">Cancel this class</span></label><label><span data-i18n="UI.WEEKDAY">New weekday</span><select id="exception-weekday"></select></label><label><span data-i18n="UI.START_TIME">New start time</span><input id="exception-start" type="time" /></label><label><span data-i18n="UI.END_TIME">New end time</span><input id="exception-end" type="time" /></label><label><span data-i18n="UI.LOCATION">New location</span><input id="exception-location" /></label><label><span data-i18n="UI.TEACHER">New teacher</span><input id="exception-teacher" /></label></div>
+      <div class="actions"><button id="exception-reset" type="button" class="plain danger" data-i18n="UI.RESET_EXCEPTION">Use normal schedule</button><button id="exception-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
+    </form></dialog>
+
+    <dialog id="import-preview-dialog"><form id="import-preview-form"><h2 data-i18n="UI.IMPORT_PREVIEW">Import preview</h2><div id="import-summary" class="panel"></div><div class="preview-scroll"><table class="preview-table"><thead><tr><th data-i18n="UI.COURSE_NAME">Course</th><th data-i18n="UI.WEEKDAY">Day</th><th data-i18n="UI.START_TIME">Time</th><th data-i18n="UI.WEEKS">Weeks</th><th data-i18n="UI.TEACHER">Teacher</th><th data-i18n="UI.LOCATION">Location</th><th>Status</th></tr></thead><tbody id="import-preview-body"></tbody></table></div><div class="actions"><button id="import-preview-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.IMPORT">Import</button></div></form></dialog>
 
     <dialog id="assignment-dialog">
       <form id="assignment-form">
@@ -119,8 +170,12 @@
 
     <dialog id="help-dialog"><form method="dialog">
       <h2 data-i18n="UI.HELP_TITLE">Help</h2>
-      <div class="help-copy" data-i18n="UI.HELP_BODY">Quick start: set the semester, then import a timetable or add a course. The current week shows active courses; Sync sends courses to your Super Productivity plan. Export creates ICS, CSV, or JSON backups. Supported imports: CSV timetable, structured CSV, HTML tables, pasted web timetables, and XLSX. CSV timetable cells may contain course, teacher, room, and weeks; structured CSV uses one course per row; HTML preserves table, rowspan, and colspan structure. Examples: 1~3,5~16周, 4周, odd weeks, even weeks, custom weeks 1,3,5, and weekdays Monday/周一/Monday.</div>
+      <div id="help-copy" class="help-copy"></div>
       <button class="primary" data-i18n="UI.CLOSE">Close</button>
+    </form></dialog>
+    <dialog id="import-dialog"><form method="dialog">
+      <h2 data-i18n="UI.IMPORT">Import</h2>
+      <div class="actions"><button id="paste-import" type="button" class="plain" data-i18n="UI.PASTE_IMPORT">Paste web timetable</button><button type="button" class="plain" data-import-accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">XLSX</button><button type="button" class="plain" data-import-accept=".csv,text/csv,text/tab-separated-values">CSV / TSV</button><button type="button" class="plain" data-import-accept=".html,.htm,text/html">HTML</button><button id="docx-import" type="button" class="plain">DOCX</button><button class="plain" data-i18n="UI.CANCEL">Cancel</button></div>
     </form></dialog>
     <dialog id="paste-dialog"><form id="paste-form">
       <h2 data-i18n="UI.PASTE_TITLE">Paste timetable</h2>
@@ -131,20 +186,28 @@
       <h2 data-i18n="UI.EXPORT">Export</h2>
       <div class="actions"><button id="export-ics" type="button" class="plain">ICS</button><button id="export-csv" type="button" class="plain">CSV</button><button id="export-json" type="button" class="plain">JSON backup</button><button class="plain" data-i18n="UI.CANCEL">Cancel</button></div>
     </form></dialog>
+    <dialog id="mobile-more-dialog"><form method="dialog"><h2 data-i18n="UI.MORE">More</h2><div class="actions"><button id="mobile-export" type="button" class="plain" data-i18n="UI.EXPORT">Export</button><button id="mobile-sync" type="button" class="plain" data-i18n="UI.SYNC_ALL">Sync</button><button id="mobile-help" type="button" class="plain" data-i18n="UI.HELP">Help</button><button id="mobile-settings" type="button" class="plain" data-i18n="UI.SETTINGS">Settings</button><button class="plain" data-i18n="UI.CANCEL">Cancel</button></div></form></dialog>
 
     <script>
-      let state = { version: 2, semesterId: 'default', semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], semesters: {} };
+      let state = { version: 3, semesterId: 'default', semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], events: [], exceptions: [], semesters: {} };
       let settings = { density: 'comfortable', language: 'auto', accent: 'theme', customColor: '#3b82f6', showWeekends: true, displayMode: 'timeline', mergeNames: false, timeLabels: 'shared' };
       let projects = [];
       let selectedWeek = 1;
       let displayMode = 'timeline';
+      let activeView = 'timetable';
+      let spTasks = [];
+      let pendingImport = null;
+      let initialized = false;
       const $ = (id) => document.getElementById(id);
+      const isMobile = () => ['android', 'ios'].includes(PluginAPI.cfg?.platform) || matchMedia('(max-width: 680px)').matches;
       const LOCAL_TRANSLATIONS = {
         en: { UI: { TITLE:'Courses & Timetable', COURSES:'Courses', SEMESTER:'Semester', CURRENT_SEMESTER:'Current semester', NEW_SEMESTER:'New semester', NEW_SEMESTER_NAME:'Enter semester name', CLEAR_SEMESTER:'Clear current timetable', CONFIRM_CLEAR_SEMESTER:'Clear all courses and assignments in the current semester?', SEMESTER_NAME:'Semester name', START_DATE:'First Monday', WEEKS:'Weeks', SAVE_SEMESTER:'Save semester', WEEK:'Week', PREVIOUS:'Previous', NEXT:'Next', ADD_COURSE:'Add course', IMPORT:'Import CSV / HTML', EXPORT_ICS:'Export timetable (.ics)', SYNC_ALL:'Sync to plan', SYNC:'Sync', NO_CLASSES:'No classes this week.', CURRENT:'Now: {{name}} ({{time}})', FREE_NOW:'No class now', NEXT_CLASS:'Next: {{name}} at {{time}}', NO_NEXT:'No more classes today', SINCE_START:'Starts in {{minutes}} min', UNTIL_END:'Ends in {{minutes}} min', SYNCED:'Plan synced', SYNC_UNSUPPORTED:'This SP version cannot update existing tasks.', COURSE_NAME:'Course name', TEACHER:'Teacher', LOCATION:'Location', WEEKDAY:'Weekday', START_TIME:'Start time', END_TIME:'End time', START_WEEK:'Start week', END_WEEK:'End week', PATTERN:'Week pattern', CUSTOM_WEEKS:'Custom weeks (comma separated)', COLOR:'Color', NOTE:'Note', OBSIDIAN_LINK:'Obsidian link', PROJECT:'Assignment project', NONE:'None', EVERY:'Every week', ODD:'Odd weeks', EVEN:'Even weeks', CUSTOM:'Custom weeks', SAVE:'Save', CANCEL:'Cancel', EDIT:'Edit', DELETE:'Delete', ADD_ASSIGNMENT:'Add assignment', ASSIGNMENT_TITLE:'Assignment title', DUE_DAY:'Due date', ESTIMATE:'Estimate (minutes)', CREATED:'Assignment task created', SAVED:'Course saved', CONFIRM_DELETE:'Delete this course?', IMPORT_CONFIRM:'Import {{count}} courses? {{corrected}} corrected, {{skipped}} invalid skipped. Existing duplicates will also be skipped.', IMPORTED:'Imported {{count}} courses', IMPORT_EMPTY:'No recognizable course rows were found.', SETTINGS:'Settings', DENSITY:'Layout density', COMFORTABLE:'Comfortable', COMPACT:'Compact', LANGUAGE:'Plugin language', LANGUAGE_AUTO:'Follow SP language', ACCENT:'Card accent color', FOLLOW_THEME:'Follow SP theme', BLUE:'Blue', GREEN:'Green', ORANGE:'Orange', PURPLE:'Purple', CUSTOM_COLOR:'Custom', CUSTOM_COLOR_VALUE:'Custom card color', SHOW_WEEKENDS:'Show weekends', SETTINGS_SAVED:'Settings saved' }, DAY: { 1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday', 7:'Sunday' } },
         zh: { UI: { TITLE:'课程与课表', COURSES:'课程列表', SEMESTER:'学期', CURRENT_SEMESTER:'当前学期', NEW_SEMESTER:'新建学期', NEW_SEMESTER_NAME:'请输入学期名称', CLEAR_SEMESTER:'清空当前学期课表', CONFIRM_CLEAR_SEMESTER:'确定清空当前学期的课程和作业吗？', SEMESTER_NAME:'学期名称', START_DATE:'第一周周一', WEEKS:'总周数', SAVE_SEMESTER:'保存学期', WEEK:'第 {{count}} 周', PREVIOUS:'上一周', NEXT:'下一周', ADD_COURSE:'添加课程', IMPORT:'导入 CSV / HTML', EXPORT_ICS:'导出课表（.ics）', SYNC_ALL:'同步到计划', SYNC:'同步', NO_CLASSES:'本周没有课程。', CURRENT:'现在：{{name}}（{{time}}）', FREE_NOW:'当前没有课', NEXT_CLASS:'下一节：{{name}}，{{time}} 开始', NO_NEXT:'今天没有下一节课', SINCE_START:'距离上课还有 {{minutes}} 分钟', UNTIL_END:'距离下课还有 {{minutes}} 分钟', SYNCED:'计划已同步', SYNC_UNSUPPORTED:'当前 SP 版本不支持更新已有任务。', COURSE_NAME:'课程名称', TEACHER:'教师', LOCATION:'地点', WEEKDAY:'星期', START_TIME:'开始时间', END_TIME:'结束时间', START_WEEK:'开始周', END_WEEK:'结束周', PATTERN:'周次模式', CUSTOM_WEEKS:'自定义周次（逗号分隔）', COLOR:'颜色', NOTE:'备注', OBSIDIAN_LINK:'Obsidian 链接', PROJECT:'作业所属项目', NONE:'无', EVERY:'每周', ODD:'单周', EVEN:'双周', CUSTOM:'自定义周次', SAVE:'保存', CANCEL:'取消', EDIT:'编辑', DELETE:'删除', ADD_ASSIGNMENT:'添加作业', ASSIGNMENT_TITLE:'作业标题', DUE_DAY:'截止日期', ESTIMATE:'预计耗时（分钟）', CREATED:'作业任务已创建', SAVED:'课程已保存', CONFIRM_DELETE:'删除这门课程？', IMPORT_CONFIRM:'识别到 {{count}} 门课程，其中自动修正 {{corrected}} 门、跳过无效数据 {{skipped}} 门。已有重复课程也会跳过。', IMPORTED:'已导入 {{count}} 门课程', IMPORT_EMPTY:'没有识别到有效的课程行。', SETTINGS:'设置', DENSITY:'界面密度', COMFORTABLE:'舒适', COMPACT:'紧凑', LANGUAGE:'插件语言', LANGUAGE_AUTO:'跟随 SP 语言', ACCENT:'卡片强调色', FOLLOW_THEME:'跟随 SP 主题', BLUE:'蓝色', GREEN:'绿色', ORANGE:'橙色', PURPLE:'紫色', CUSTOM_COLOR:'自定义', CUSTOM_COLOR_VALUE:'自定义卡片颜色', SHOW_WEEKENDS:'显示周末', SETTINGS_SAVED:'设置已保存' }, DAY: { 1:'周一', 2:'周二', 3:'周三', 4:'周四', 5:'周五', 6:'周六', 7:'周日' } }
       };
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { EDIT_SEMESTER:'Edit semester', PASTE_IMPORT:'Paste timetable', EXPORT:'Export', TIMELINE:'Timeline', LIST:'Compact list', HELP:'Help', HELP_TITLE:'Using the timetable', CLOSE:'Close', PASTE_TITLE:'Paste web timetable', PASTE_HINT:'Copy a timetable from your school website and paste it here.', MERGE_NAMES:'Merge courses with the same name', TIME_LABELS:'Timeline time labels', TIME_EACH:'Show on every course', TIME_SHARED:'Merge identical times on the left', HELP_BODY:'Quick start: set the semester, then import a timetable or add a course. The current week shows active courses; Sync sends courses to your Super Productivity plan. Export creates ICS, CSV, or JSON backups. Supported imports: CSV timetable, structured CSV, HTML tables, pasted web timetables, and XLSX. CSV timetable cells may contain course, teacher, room, and weeks; structured CSV uses one course per row; HTML preserves table, rowspan, and colspan structure. Examples: 1~3,5~16 weeks, 4 week, odd weeks, even weeks, custom weeks 1,3,5, and weekdays Monday/周一.' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EDIT_SEMESTER:'编辑学期', PASTE_IMPORT:'粘贴网页课表', EXPORT:'导出', TIMELINE:'时间轴', LIST:'紧凑列表', HELP:'帮助', HELP_TITLE:'使用说明', CLOSE:'关闭', PASTE_TITLE:'粘贴网页课表', PASTE_HINT:'从教务系统复制课表后粘贴到这里。', MERGE_NAMES:'合并同名课程', TIME_LABELS:'时间轴时间显示', TIME_EACH:'每节课上方显示', TIME_SHARED:'相同时间合并到左侧', HELP_BODY:'快速开始：先设置学期，再导入课表或手动添加课程。当前周显示正在进行的课程；同步会把课程发送到 Super Productivity 计划。导出支持 ICS、CSV 和 JSON 备份。支持 CSV 周课表、结构化 CSV、HTML 表格、粘贴网页课表和 XLSX。CSV 周课表单元格可包含课程、教师、地点和周次；结构化 CSV 每行是一门课程；HTML 会保留 table、rowspan 和 colspan。示例：1~3,5~16周、4周、单周、双周、自定义周次 1,3,5，以及 周一 / Monday 等多语言星期。' });
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:'Plan', VIEW_TODAY:'Today', TODAY_COURSES:"Today's classes", TODAY_TASKS:"Today's tasks", TODAY_DDL:"Today's deadlines", UPCOMING_EVENTS:'Upcoming events', EVENT:'Course event', EVENT_TYPE:'Event type', ADD_EVENT:'Add event', NO_EVENTS:'Nothing scheduled', EXCEPTION:'Reschedule / cancel', RESET_EXCEPTION:'Use normal schedule', CANCEL_CLASS:'Cancel this class', TASK_PREFIX:'Task title prefix', ADD_TASK:'Add task', OPEN_TASKS:'open tasks', SYNCED_STATUS:'Synced', NOT_SYNCED:'Not synced', OPEN_NOTES:'Open course notes', ACTIONS:'Course actions', CONFLICT_CONFIRM:'This course conflicts with another class in at least one week. Save anyway?', IMPORT_PREVIEW:'Import preview', VALID:'Valid', DUPLICATE:'Duplicate', CONFLICT:'Conflict', INVALID:'Invalid', CORRECTED:'Corrected', MORE:'More', DOCX_PENDING:'DOCX table import is being completed for the next release. Use web paste, HTML, CSV, or XLSX for now.' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { VIEW_TIMETABLE:'课表', VIEW_PLAN:'计划', VIEW_TODAY:'今日', TODAY_COURSES:'今天全部课程', TODAY_TASKS:'今日任务', TODAY_DDL:'今日 DDL', UPCOMING_EVENTS:'即将发生的课程事件', EVENT:'课程事件', EVENT_TYPE:'事件类型', ADD_EVENT:'添加事件', NO_EVENTS:'暂无安排', EXCEPTION:'调课 / 停课', RESET_EXCEPTION:'恢复正常课表', CANCEL_CLASS:'本周停课', TASK_PREFIX:'默认任务标题前缀', ADD_TASK:'添加任务', OPEN_TASKS:'个未完成任务', SYNCED_STATUS:'已同步', NOT_SYNCED:'未同步', OPEN_NOTES:'打开课程笔记', ACTIONS:'课程操作', CONFLICT_CONFIRM:'这门课程至少在一周内与其他课程时间冲突，仍然保存吗？', IMPORT_PREVIEW:'导入预览', VALID:'有效', DUPLICATE:'重复', CONFLICT:'冲突', INVALID:'无效', CORRECTED:'已修正', MORE:'更多', DOCX_PENDING:'DOCX 表格导入将在下一版本完成。当前请使用网页粘贴、HTML、CSV 或 XLSX。' });
       const lookup = (object, key) => key.split('.').reduce((value, part) => value?.[part], object);
       const interpolate = (text, params = {}) => text.replace(/\{\{(\w+)\}\}/g, (match, key) => key in params ? String(params[key]) : match);
       const tr = async (key, params) => settings.language === 'auto' ? PluginAPI.translate(key, params) : interpolate(lookup(LOCAL_TRANSLATIONS[settings.language], key) || lookup(LOCAL_TRANSLATIONS.en, key) || key, params);
@@ -157,7 +220,7 @@
           try {
             const saved = JSON.parse(raw);
             if (saved.semesters && typeof saved.semesters === 'object') state = { ...state, ...saved };
-            else state = { ...state, ...saved, version: 2, semesterId: saved.semesterId || 'default', semesters: {} };
+            else state = { ...state, ...saved, version: 3, semesterId: saved.semesterId || 'default', semesters: {} };
           } catch (error) { console.error(error); }
         }
         state.semesters = state.semesters && typeof state.semesters === 'object' ? state.semesters : {};
@@ -166,9 +229,13 @@
           state.semester = semesterData.semester || state.semester;
           state.courses = semesterData.courses || state.courses;
           state.assignments = semesterData.assignments || state.assignments;
+          state.events = semesterData.events || [];
+          state.exceptions = semesterData.exceptions || [];
         }
         state.courses = Array.isArray(state.courses) ? state.courses : [];
         state.assignments = Array.isArray(state.assignments) ? state.assignments : [];
+        state.events = Array.isArray(state.events) ? state.events : [];
+        state.exceptions = Array.isArray(state.exceptions) ? state.exceptions : [];
         const settingsRaw = await PluginAPI.loadSyncedData('ui-settings');
         if (settingsRaw) {
           try { settings = { ...settings, ...JSON.parse(settingsRaw) }; } catch (error) { console.error(error); }
@@ -177,13 +244,15 @@
         settings.mergeNames = settings.mergeNames === true;
         settings.timeLabels = settings.timeLabels === 'each' ? 'each' : 'shared';
         if (!['theme', 'blue', 'green', 'orange', 'purple', 'custom'].includes(settings.accent)) settings.accent = 'blue';
-        projects = await PluginAPI.getAllProjects();
-        if (state.semester.startDate) {
+        try { projects = typeof PluginAPI.getAllProjects === 'function' ? await PluginAPI.getAllProjects() : []; } catch (error) { console.error(error); projects = []; }
+        try { spTasks = typeof PluginAPI.getTasks === 'function' ? await PluginAPI.getTasks() : []; } catch (error) { console.error(error); spTasks = []; }
+        if (state.semester.startDate && !initialized) {
           selectedWeek = Math.max(1, Math.min(state.semester.weeks, Math.floor((Date.now() - new Date(`${state.semester.startDate}T00:00:00`).getTime()) / 604800000) + 1));
         }
       }
       const save = () => {
-        state.semesters[state.semesterId] = { semester: state.semester, courses: state.courses, assignments: state.assignments };
+        state.version = 3;
+        state.semesters[state.semesterId] = { semester: state.semester, courses: state.courses, assignments: state.assignments, events: state.events, exceptions: state.exceptions };
         return PluginAPI.persistDataSynced(JSON.stringify(state), 'courses');
       };
       function renderSemesterOptions() {
@@ -195,11 +264,13 @@
       async function switchSemester(semesterId) {
         if (!semesterId || semesterId === state.semesterId) return;
         await save();
-        const data = state.semesters[semesterId] || { semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [] };
+        const data = state.semesters[semesterId] || { semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], events: [], exceptions: [] };
         state.semesterId = semesterId;
         state.semester = data.semester;
         state.courses = Array.isArray(data.courses) ? data.courses : [];
         state.assignments = Array.isArray(data.assignments) ? data.assignments : [];
+        state.events = Array.isArray(data.events) ? data.events : [];
+        state.exceptions = Array.isArray(data.exceptions) ? data.exceptions : [];
         selectedWeek = 1;
         await save();
         renderSemesterOptions();
@@ -220,6 +291,40 @@
         if (course.pattern === 'custom') return course.customWeeks.includes(week);
         return true;
       };
+      const exceptionFor = (courseId, week) => state.exceptions.find((item) => item.courseId === courseId && Number(item.week) === Number(week)) || null;
+      function courseForWeek(course, week) {
+        if (!isActive(course, week)) return null;
+        const exception = exceptionFor(course.id, week);
+        if (exception?.cancelled) return null;
+        return exception ? { ...course, weekday: exception.weekday || course.weekday, startTime: exception.startTime || course.startTime, endTime: exception.endTime || course.endTime, location: exception.location || course.location, teacher: exception.teacher || course.teacher, exception: true } : course;
+      }
+      const coursesForWeek = (week) => state.courses.map((course) => courseForWeek(course, week)).filter(Boolean);
+      function taskCourse(task) {
+        const notes = String(task.notes || '');
+        const explicitId = notes.match(/Course ID:\s*([^\s,]+)/i)?.[1];
+        const mapped = state.courses.find((course) => course.id === explicitId || course.taskId === task.id);
+        if (mapped) return mapped;
+        const assignment = state.assignments.find((item) => item.taskId === task.id);
+        if (assignment) return state.courses.find((course) => course.id === assignment.courseId) || null;
+        const linkedEvent = state.events.find((item) => item.taskId === task.id && item.courseId);
+        if (linkedEvent) return state.courses.find((course) => course.id === linkedEvent.courseId) || null;
+        const projectMatches = state.courses.filter((course) => course.projectId && course.projectId === task.projectId);
+        if (projectMatches.length === 1) return projectMatches[0];
+        const haystack = `${task.title || ''}\n${notes}`.toLocaleLowerCase();
+        return state.courses.find((course) => course.name && haystack.includes(course.name.toLocaleLowerCase())) || null;
+      }
+      const tasksForCourse = (course) => spTasks.filter((task) => taskCourse(task)?.id === course.id);
+      const openTasksForCourse = (course) => tasksForCourse(course).filter((task) => !task.isDone);
+      async function refreshTasks() { try { spTasks = typeof PluginAPI.getTasks === 'function' ? await PluginAPI.getTasks() : []; } catch (error) { console.error(error); } }
+      function conflictIds(courses, week) {
+        const resolved = courses.map((course) => courseForWeek(course, week)).filter(Boolean);
+        const conflicts = new Set();
+        for (let left = 0; left < resolved.length; left++) for (let right = left + 1; right < resolved.length; right++) {
+          const a = resolved[left], b = resolved[right];
+          if (Number(a.weekday) === Number(b.weekday) && minutesOfDay(a.startTime) < minutesOfDay(b.endTime) && minutesOfDay(b.startTime) < minutesOfDay(a.endTime)) { conflicts.add(a.id); conflicts.add(b.id); }
+        }
+        return conflicts;
+      }
       const courseNameKey = (course) => String(course.name || '').trim().toLocaleLowerCase();
       function courseGroups(courses = state.courses) {
         if (!settings.mergeNames) return courses.map((course) => ({ key: course.id, name: course.name, courses: [course], representative: course }));
@@ -232,8 +337,9 @@
         return [...groups.values()];
       }
       function visibleWeekdays() {
+        if (isMobile()) return [new Date().getDay() || 7];
         const weekdays = [1, 2, 3, 4, 5];
-        if (settings.showWeekends && [6, 7].some((day) => state.courses.some((course) => Number(course.weekday) === day && isActive(course, selectedWeek)))) weekdays.push(6, 7);
+        if (settings.showWeekends && [6, 7].some((day) => coursesForWeek(selectedWeek).some((course) => Number(course.weekday) === day))) weekdays.push(6, 7);
         return weekdays;
       }
 
@@ -246,12 +352,13 @@
         return Math.floor((day.getTime() - start.getTime()) / 604800000) + 1;
       }
       function occurrenceFor(course, week) {
-        if (!state.semester.startDate || !isActive(course, week)) return null;
+        const resolved = courseForWeek(course, week);
+        if (!state.semester.startDate || !resolved) return null;
         const date = new Date(`${state.semester.startDate}T00:00:00`);
-        date.setDate(date.getDate() + (week - 1) * 7 + Number(course.weekday) - 1);
-        const start = new Date(date); const [startHour, startMinute] = course.startTime.split(':').map(Number); start.setHours(startHour, startMinute, 0, 0);
-        const end = new Date(date); const [endHour, endMinute] = course.endTime.split(':').map(Number); end.setHours(endHour, endMinute, 0, 0);
-        return { course, week, start, end };
+        date.setDate(date.getDate() + (week - 1) * 7 + Number(resolved.weekday) - 1);
+        const start = new Date(date); const [startHour, startMinute] = resolved.startTime.split(':').map(Number); start.setHours(startHour, startMinute, 0, 0);
+        const end = new Date(date); const [endHour, endMinute] = resolved.endTime.split(':').map(Number); end.setHours(endHour, endMinute, 0, 0);
+        return { course: resolved, week, start, end };
       }
       function nextOccurrence(course, now = new Date()) {
         if (!state.semester.startDate) return null;
@@ -268,7 +375,7 @@
         const week = semesterWeek(now);
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
         const activeWeek = week && week >= 1 && week <= state.semester.weeks ? week : null;
-        const today = state.courses.filter((course) => Number(course.weekday) === weekday && activeWeek && isActive(course, activeWeek)).sort((a, b) => a.startTime.localeCompare(b.startTime));
+        const today = activeWeek ? coursesForWeek(activeWeek).filter((course) => Number(course.weekday) === weekday).sort((a, b) => a.startTime.localeCompare(b.startTime)) : [];
         const current = today.find((course) => minutesOfDay(course.startTime) <= currentMinutes && currentMinutes < minutesOfDay(course.endTime)) || null;
         const next = state.courses.map((course) => nextOccurrence(course, now)).filter(Boolean).sort((a, b) => a.start - b.start)[0] || null;
         return { weekday, week: activeWeek, current, next, currentMinutes };
@@ -297,27 +404,91 @@
         $('weekday').innerHTML = (await Promise.all([1,2,3,4,5,6,7].map(async (day) => `<option value="${day}">${esc(await tr(`DAY.${day}`))}</option>`))).join('');
         $('pattern').innerHTML = (await Promise.all(['every','odd','even','custom'].map(async (pattern) => `<option value="${pattern}">${esc(await tr(`UI.${pattern.toUpperCase()}`))}</option>`))).join('');
         $('project').innerHTML = `<option value="">${esc(await tr('UI.NONE'))}</option>` + projects.map((p) => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+        renderHelp();
+      }
+      function renderHelp() {
+        const zh = settings.language === 'zh' || (settings.language === 'auto' && /^zh/i.test(PluginAPI.cfg?.lang?.code || navigator.language));
+        $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><li>设置第一周周一</li><li>导入或粘贴课程表</li><li>检查导入预览</li><li>使用课表、今日和计划视图</li><li>可选：同步到 SP</li></ol><h3>支持的导入方式</h3><p>支持粘贴网页课表、XLSX、CSV/TSV、HTML 和 DOCX。Word 优先识别表格课表；图片型 Word 不做 OCR。PDF 和图片暂不是主要支持格式。</p><h3>周次与星期</h3><p><code>1周</code>、<code>1~8周</code>、<code>1,3,5周</code>、<code>1~3,5~16周</code>、单周、双周；星期支持周一、星期一、Monday、Mon、月曜日和数字写法。</p><h3>学期管理</h3><p>“第一周周一”是教学周计算基准。每个学期独立保存课程、事件、调课和任务关联。清空当前学期不会删除 SP 任务。</p><h3>SP 同步</h3><p>同步课程会创建一个 SP 任务并保存对应关系；修改课程后再次同步会更新该任务。插件也会读取现有 SP 任务，通过 courseId、projectId、备注和标题识别所属课程。</p><h3>导出</h3><p>ICS 用于日历；CSV 用于 Excel 查看和交换；JSON 保存完整插件数据。</p><h3>移动端与跨设备</h3><p>插件代码需要在每台设备安装一次。安装相同插件 ID 后，课程、学期、事件、调课和设置通过 SP 同步数据继续同步。插件不会自动下载远程代码。</p><h3>常见问题</h3><p><strong>没有识别：</strong>检查是否包含星期表头和节次/时间列。<br><strong>少课：</strong>在预览中检查重复、无效和冲突标记。<br><strong>某周没课：</strong>检查起止周、单双周和停课例外。<br><strong>HTML/DOCX 失败：</strong>页面可能未保存真实数据，或 Word 只有图片。<br><strong>冲突：</strong>插件会提示，但允许确认保存。<br><strong>调课/停课：</strong>在课程卡片选择“调课 / 停课”，只影响指定周。</p>` : `<h3>Quick start</h3><ol><li>Create a semester</li><li>Set its first Monday</li><li>Import or paste a timetable</li><li>Review the import preview</li><li>Use Timetable, Today, and Plan</li><li>Optionally sync to SP</li></ol><h3>Imports</h3><p>Paste web timetables or import XLSX, CSV/TSV, HTML, and DOCX. Word table timetables are preferred; image-only Word files are not OCRed. PDF and images are not primary formats.</p><h3>Weeks and weekdays</h3><p>Supports <code>1 week</code>, <code>1-8 weeks</code>, <code>1,3,5 weeks</code>, mixed ranges, odd/even weeks; weekdays include Monday, Mon, 周一, 月曜日, and numeric forms.</p><h3>Semesters</h3><p>The first Monday is the teaching-week baseline. Each semester keeps separate courses, events, exceptions, and task links. Clearing a semester never deletes SP tasks.</p><h3>SP sync</h3><p>Sync creates a mapped SP task; syncing again after edits updates it. Existing SP tasks are associated by course ID, project, notes, and title.</p><h3>Exports</h3><p>ICS is for calendars, CSV for spreadsheets/exchange, and JSON for a complete backup.</p><h3>Mobile and sync</h3><p>Install the plugin once on each device. After the same plugin ID is installed, semesters, courses, events, exceptions, and settings follow SP synced plugin data. The plugin never auto-downloads executable code.</p><h3>FAQ</h3><p><strong>Nothing recognized:</strong> verify weekday headers and a period/time column.<br><strong>Missing classes:</strong> inspect duplicate, invalid, and conflict labels in preview.<br><strong>Missing week:</strong> check week ranges, odd/even rules, and cancellations.<br><strong>HTML/DOCX failure:</strong> the source may not contain actual table data or may be image-only.<br><strong>Conflicts:</strong> warnings do not prevent an explicit save.<br><strong>Reschedule/cancel:</strong> use the course-card exception action for one teaching week.</p>`;
+        if (zh) $('help-copy').innerHTML = $('help-copy').innerHTML.replace('支持粘贴网页课表、XLSX、CSV/TSV、HTML 和 DOCX。Word 优先识别表格课表；图片型 Word 不做 OCR。', '当前支持粘贴网页课表、XLSX、CSV/TSV 和 HTML；DOCX 表格课表导入正在完善中，图片型 Word 不做 OCR。');
+        else $('help-copy').innerHTML = $('help-copy').innerHTML.replace('Paste web timetables or import XLSX, CSV/TSV, HTML, and DOCX. Word table timetables are preferred; image-only Word files are not OCRed.', 'Paste web timetables or import XLSX, CSV/TSV, and HTML. DOCX table import is in progress; image-only Word files are not OCRed.');
       }
 
+      function timelineLayout(courses) {
+        const sorted = [...courses].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        const lanes = [];
+        return sorted.map((course) => {
+          let lane = lanes.findIndex((end) => end <= minutesOfDay(course.startTime));
+          if (lane < 0) lane = lanes.length;
+          lanes[lane] = minutesOfDay(course.endTime);
+          const overlap = sorted.filter((other) => minutesOfDay(other.startTime) < minutesOfDay(course.endTime) && minutesOfDay(course.startTime) < minutesOfDay(other.endTime)).length;
+          return { course, lane, lanes: Math.max(lanes.length, overlap) };
+        });
+      }
+      const weekDate = (week, weekday) => { const date = new Date(`${state.semester.startDate}T00:00:00`); date.setDate(date.getDate() + (week - 1) * 7 + weekday - 1); return date; };
+      const tasksOnDate = (date) => spTasks.filter((task) => task.dueDay === date && !task.isDone);
+      const eventsOnDate = (date) => state.events.filter((event) => event.date === date).sort((a, b) => String(a.time || '23:59').localeCompare(String(b.time || '23:59')));
+      const eventLabel = (event) => `<span class="badge">${esc(event.type)}</span> ${event.time ? `${esc(event.time)} ` : ''}${esc(event.title)}`;
+      async function renderPlan() {
+        if (!state.semester.startDate) { $('plan-view').innerHTML = `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`; return; }
+        let html = `<div class="week-nav"><button class="plain" data-plan-nav="prev">←</button><strong>${esc(await tr('UI.WEEK', { count: selectedWeek }))}</strong><button class="plain" data-plan-nav="next">→</button><button class="primary" data-action="new-event">${esc(await tr('UI.ADD_EVENT'))}</button></div>`;
+        for (const day of [1,2,3,4,5,6,7]) {
+          const date = localDate(weekDate(selectedWeek, day));
+          const courses = coursesForWeek(selectedWeek).filter((course) => Number(course.weekday) === day).sort((a,b) => a.startTime.localeCompare(b.startTime));
+          const looseTasks = tasksOnDate(date).filter((task) => !taskCourse(task));
+          const events = eventsOnDate(date);
+          if (!courses.length && !looseTasks.length && !events.length) continue;
+          html += `<section class="plan-day"><h3>${esc(await tr(`DAY.${day}`))} · ${esc(date)}</h3>`;
+          for (const course of courses) {
+            const tasks = openTasksForCourse(course).filter((task) => !task.dueDay || task.dueDay === date);
+            html += `<div class="plan-course" style="--course-color:${esc(course.color)}"><strong>${esc(course.startTime)}–${esc(course.endTime)} ${esc(course.name)}</strong><div class="muted">${esc(course.location || '')}</div>${tasks.length ? `<ul class="task-list">${tasks.map((task) => `<li class="task-row">${esc(task.title)}</li>`).join('')}</ul>` : ''}</div>`;
+          }
+          html += events.map((event) => `<div class="event-row" data-event-id="${esc(event.id)}">${eventLabel(event)}${event.courseId ? ` · ${esc(state.courses.find((course) => course.id === event.courseId)?.name || '')}` : ''}</div>`).join('');
+          html += looseTasks.map((task) => `<div class="task-row">${task.dueDay ? '⏰ ' : ''}${esc(task.title)}</div>`).join('');
+          html += `</section>`;
+        }
+        $('plan-view').innerHTML = html || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`;
+      }
+      async function renderToday() {
+        const now = new Date(), date = localDate(now), context = liveContext(now);
+        const courses = context.week ? coursesForWeek(context.week).filter((course) => Number(course.weekday) === context.weekday).sort((a,b) => a.startTime.localeCompare(b.startTime)) : [];
+        const tasks = tasksOnDate(date), events = eventsOnDate(date), upcoming = state.events.filter((event) => event.date > date).sort((a,b) => a.date.localeCompare(b.date)).slice(0, 5);
+        const noteLink = context.current?.obsidianLink ? `<a class="plain" href="${esc(context.current.obsidianLink)}">${esc(await tr('UI.OPEN_NOTES'))}</a>` : '';
+        const currentCountdown = context.current ? await tr('UI.UNTIL_END', { minutes: minutesOfDay(context.current.endTime) - context.currentMinutes }) : '';
+        const nextCountdown = context.next ? await tr('UI.SINCE_START', { minutes: Math.max(1, Math.ceil((context.next.start.getTime() - now.getTime()) / 60000)) }) : '';
+        $('today-view').innerHTML = `<section class="panel status"><h2>${esc(await tr('UI.VIEW_TODAY'))} · ${esc(date)}</h2><div class="status-main">${context.current ? esc(await tr('UI.CURRENT', { name: context.current.name, time: `${context.current.startTime}-${context.current.endTime}` })) : esc(await tr('UI.FREE_NOW'))}</div><div class="muted">${esc(currentCountdown)}</div><div class="muted">${context.next ? esc(await tr('UI.NEXT_CLASS', { name: context.next.course.name, time: `${localDate(context.next.start)} ${context.next.course.startTime}` })) : esc(await tr('UI.NO_NEXT'))} · ${esc(nextCountdown)}</div>${noteLink}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_COURSES'))}</h3>${courses.map((course) => `<div class="plan-course" style="--course-color:${esc(course.color)}"><strong>${esc(course.startTime)}–${esc(course.endTime)} ${esc(course.name)}</strong><div class="muted">${esc(course.location || '')}</div></div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_TASKS'))}</h3>${tasks.map((task) => `<div class="task-row">${esc(task.title)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.TODAY_DDL'))}</h3>${events.map((event) => `<div class="event-row">${eventLabel(event)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section><section class="today-block"><h3>${esc(await tr('UI.UPCOMING_EVENTS'))}</h3>${upcoming.map((event) => `<div class="event-row">${esc(event.date)} ${eventLabel(event)}</div>`).join('') || `<div class="empty">${esc(await tr('UI.NO_EVENTS'))}</div>`}</section>`;
+      }
       async function render() {
-        $('display-mode').value = displayMode;
+        document.querySelectorAll('.view-panel').forEach((panel) => { panel.hidden = panel.id !== `view-${activeView}`; });
+        document.querySelectorAll('.view-tab').forEach((button) => button.classList.toggle('active', button.dataset.view === activeView));
+        if (activeView === 'plan') return renderPlan();
+        if (activeView === 'today') return renderToday();
+        return renderTimetable();
+      }
+      async function renderTimetable() {
+        const effectiveDisplayMode = isMobile() ? 'list' : displayMode;
+        $('display-mode').value = effectiveDisplayMode;
         $('week-label').textContent = await tr('UI.WEEK', { count: selectedWeek });
         $('prev').disabled = selectedWeek <= 1;
         $('next').disabled = selectedWeek >= state.semester.weeks;
         const weekdays = visibleWeekdays();
-        const sharedTimeLabels = displayMode === 'timeline' && settings.timeLabels === 'shared';
-        const sharedStartTimes = [...new Set(state.courses.filter((course) => weekdays.includes(Number(course.weekday)) && isActive(course, selectedWeek)).map((course) => course.startTime))].sort();
+        const sharedTimeLabels = effectiveDisplayMode === 'timeline' && settings.timeLabels === 'shared';
+        const weekCourses = coursesForWeek(selectedWeek);
+        const conflicts = conflictIds(state.courses, selectedWeek);
+        const sharedStartTimes = [...new Set(weekCourses.filter((course) => weekdays.includes(Number(course.weekday))).map((course) => course.startTime))].sort();
         const timelineHours = sharedStartTimes.map((time) => `<span style="top:${Math.max(0, minutesOfDay(time) - 7 * 60)}px">${esc(time)}</span>`).join('');
         $('timetable').className = `week-grid${sharedTimeLabels ? ' with-time-axis timeline-shared' : ' timeline-each'}`;
         $('timetable').style.setProperty('--day-count', weekdays.length);
         let weekHtml = '';
         if (sharedTimeLabels) weekHtml = `<div class="timeline-axis"><div class="timeline-hours">${timelineHours}</div></div>`;
         for (const day of weekdays) {
-          const active = state.courses.filter((course) => Number(course.weekday) === day && isActive(course, selectedWeek)).sort((a, b) => a.startTime.localeCompare(b.startTime));
-          if (displayMode === 'list') weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3>${active.length ? active.map((course) => `<div class="class-card" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`;
+          const active = weekCourses.filter((course) => Number(course.weekday) === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
+          if (effectiveDisplayMode === 'list') { const currentCourse = selectedWeek === semesterWeek(new Date()) ? getCurrentCourse() : null; weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3>${active.length ? active.map((course) => `<div class="class-card${currentCourse?.id === course.id ? ' current-course' : ''}${conflicts.has(course.id) ? ' danger' : ''}" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`; }
           else {
-            const cards = active.map((course) => { const top = Math.max(0, (minutesOfDay(course.startTime) - 7 * 60)); const height = Math.max(30, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)); const label = settings.timeLabels === 'each' ? `<div class="timeline-time-label">${esc(course.startTime)}</div>` : ''; return `<div class="class-card timeline-card" style="--course-color:${esc(course.color)};top:${top}px;height:${height}px">${label}<strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`; }).join('');
-            weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3><div class="timeline"><div class="timeline-track">${cards}</div></div></div>`;
+            const currentCourse = getCurrentCourse();
+            const cards = timelineLayout(active).map(({ course, lane, lanes }) => { const top = Math.max(0, (minutesOfDay(course.startTime) - 7 * 60)); const height = Math.max(30, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)); const label = settings.timeLabels === 'each' ? `<div class="timeline-time-label">${esc(course.startTime)}</div>` : ''; const width = 100 / lanes; return `<div class="class-card timeline-card${conflicts.has(course.id) ? ' danger' : ''}${currentCourse?.id === course.id ? ' current-course' : ''}" style="--course-color:${esc(course.color)};top:${top}px;height:${height}px;left:calc(${lane * width}% + 2px);right:auto;width:calc(${width}% - 4px)">${label}<strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`; }).join('');
+            const now = new Date(), nowMinutes = now.getHours() * 60 + now.getMinutes();
+            const current = selectedWeek === semesterWeek(now) && day === (now.getDay() || 7) && nowMinutes >= 7 * 60 && nowMinutes <= 22 * 60 ? `<div class="current-time-line" style="top:${nowMinutes - 7 * 60}px"></div>` : '';
+            weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3><div class="timeline"><div class="timeline-track">${current}${cards}</div></div></div>`;
           }
         }
         $('timetable').innerHTML = weekHtml;
@@ -326,7 +497,7 @@
           $('courses').innerHTML = `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`;
           return;
         }
-        $('courses').innerHTML = (await Promise.all(courseGroups().map(async (group) => { const course = group.representative; const details = await Promise.all(group.courses.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`)); const detailText = details.join(' / '); return `<article class="course"><div class="course-head"><div><strong>${esc(group.name)}</strong>${group.courses.length > 1 ? `<div class="muted">${group.courses.length} sections</div>` : ''}<div class="muted">${esc(detailText)}</div></div><div class="actions"><button class="plain" data-action="assignment" data-group="${esc(group.key)}">${esc(await tr('UI.ADD_ASSIGNMENT'))}</button><button class="plain" data-action="sync" data-group="${esc(group.key)}">${esc(await tr('UI.SYNC'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><button class="plain" data-action="delete" data-group="${esc(group.key)}">${esc(await tr('UI.DELETE'))}</button></div></div>${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">Obsidian</a>` : ''}</article>`; }))).join('');
+        $('courses').innerHTML = (await Promise.all(courseGroups().map(async (group) => { const course = group.representative; const details = await Promise.all(group.courses.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`)); const detailText = details.join(' / '); const tasks = openTasksForCourse(course); const synced = group.courses.some((entry) => entry.taskId); return `<article class="course"><div class="course-head"><div><strong>${esc(group.name)}</strong><span class="badge">${tasks.length} ${esc(await tr('UI.OPEN_TASKS'))}</span><span class="badge">${synced ? esc(await tr('UI.SYNCED_STATUS')) : esc(await tr('UI.NOT_SYNCED'))}</span>${group.courses.length > 1 ? `<div class="muted">${group.courses.length} sections</div>` : ''}<div class="muted">${esc(detailText)}</div></div><details class="course-actions"${isMobile() ? '' : ' open'}><summary class="plain">${esc(await tr('UI.ACTIONS'))}</summary><div class="actions"><button class="plain" data-action="assignment" data-group="${esc(group.key)}">${esc(await tr('UI.ADD_TASK'))}</button><button class="plain" data-action="event" data-id="${esc(course.id)}">${esc(await tr('UI.ADD_EVENT'))}</button><button class="plain" data-action="exception" data-id="${esc(course.id)}">${esc(await tr('UI.EXCEPTION'))}</button><button class="plain" data-action="sync" data-group="${esc(group.key)}">${esc(await tr('UI.SYNC'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><button class="plain" data-action="delete" data-group="${esc(group.key)}">${esc(await tr('UI.DELETE'))}</button></div></details></div>${tasks.length ? `<ul class="task-list">${tasks.slice(0,5).map((task) => `<li>${esc(task.title)}</li>`).join('')}</ul>` : ''}${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">${esc(await tr('UI.OPEN_NOTES'))}</a>` : ''}</article>`; }))).join('');
       }
 
       function openCourse(course) {
@@ -345,6 +516,7 @@
         $('project').value = course?.projectId || '';
         $('note').value = course?.note || '';
         $('obsidian-link').value = course?.obsidianLink || '';
+        $('task-prefix').value = course?.taskPrefix || '[Course]';
         $('course-dialog').showModal();
       }
 
@@ -354,12 +526,13 @@
         const fallback = new Date(now); fallback.setDate(fallback.getDate() + (Number(course.weekday) - (fallback.getDay() || 7) + 7) % 7);
         const dueDate = occurrence?.start || fallback;
         const duration = Math.max(0, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)) * 60000;
-        return { title: `[Course] ${course.name} ${course.startTime}`, projectId: course.projectId, notes: `Course: ${course.name}\nCourse ID: ${course.id}\nTime: ${course.startTime}-${course.endTime}\nLocation: ${course.location || ''}\nTeacher: ${course.teacher || ''}`, dueDay: localDate(dueDate), timeEstimate: duration };
+        return { title: `${course.taskPrefix || '[Course]'} ${course.name} ${course.startTime}`.trim(), projectId: course.projectId, tagIds: course.tagIds || [], notes: `Course: ${course.name}\nCourse ID: ${course.id}\nTime: ${course.startTime}-${course.endTime}\nLocation: ${course.location || ''}\nTeacher: ${course.teacher || ''}`, dueDay: localDate(dueDate), timeEstimate: duration };
       }
       function groupForKey(key) {
         return courseGroups().find((group) => group.key === key) || null;
       }
       async function syncCourseGroup(group) {
+        if (typeof PluginAPI.addTask !== 'function') { PluginAPI.showSnack?.({ msg: await tr('UI.SYNC_UNSUPPORTED'), type: 'ERROR' }); return false; }
         const representative = group.representative;
         const task = taskForCourse(representative);
         task.notes += `\nSections: ${group.courses.map((course) => `${course.startTime}-${course.endTime} ${course.location || ''} ${course.teacher || ''}`).join(' | ')}`;
@@ -373,6 +546,7 @@
       }
 
       async function syncCourse(course) {
+        if (typeof PluginAPI.addTask !== 'function') { PluginAPI.showSnack?.({ msg: await tr('UI.SYNC_UNSUPPORTED'), type: 'ERROR' }); return false; }
         const data = taskForCourse(course);
         if (course.taskId && typeof PluginAPI.updateTask === 'function') await PluginAPI.updateTask(course.taskId, data);
         else if (!course.taskId) course.taskId = await PluginAPI.addTask(data);
@@ -383,11 +557,18 @@
       async function syncCourses(courses) {
         const groups = settings.mergeNames ? courseGroups(courses) : courses.map((course) => ({ key: course.id, courses: [course], representative: course }));
         for (const group of groups) await syncCourseGroup(group);
-        await save(); await render();
+        await save(); await refreshTasks(); await render();
         PluginAPI.showSnack({ msg: await tr('UI.SYNCED'), type: 'SUCCESS' });
       }
 
       $('add').onclick = () => openCourse();
+      document.querySelectorAll('.view-tab').forEach((button) => button.onclick = async () => { activeView = button.dataset.view; await render(); });
+      document.querySelectorAll('[data-mobile-view]').forEach((button) => button.onclick = async () => { const view = button.dataset.mobileView; activeView = view === 'courses' ? 'timetable' : view; await render(); if (view === 'courses') $('courses').scrollIntoView({ behavior: 'smooth' }); });
+      $('mobile-more').onclick = () => $('mobile-more-dialog').showModal();
+      $('mobile-export').onclick = () => { $('mobile-more-dialog').close(); $('export-dialog').showModal(); };
+      $('mobile-sync').onclick = () => { $('mobile-more-dialog').close(); syncCourses(state.courses); };
+      $('mobile-help').onclick = () => { $('mobile-more-dialog').close(); $('help-dialog').showModal(); };
+      $('mobile-settings').onclick = () => { $('mobile-more-dialog').close(); $('settings').click(); };
       $('settings').onclick = () => {
         $('settings-density').value = settings.density;
         $('settings-language').value = settings.language;
@@ -417,6 +598,12 @@
       $('assignment-cancel').onclick = () => $('assignment-dialog').close();
       $('prev').onclick = async () => { selectedWeek--; await render(); };
       $('next').onclick = async () => { selectedWeek++; await render(); };
+      $('plan-view').onclick = async (event) => {
+        const nav = event.target.closest('[data-plan-nav]');
+        if (nav) { selectedWeek = Math.max(1, Math.min(state.semester.weeks, selectedWeek + (nav.dataset.planNav === 'next' ? 1 : -1))); return renderPlan(); }
+        if (event.target.closest('[data-action="new-event"]')) openEvent();
+        const eventRow = event.target.closest('[data-event-id]'); if (eventRow) openEvent(state.events.find((item) => item.id === eventRow.dataset.eventId));
+      };
       function openSemesterDialog(isNew) {
         $('semester-dialog').dataset.newSemester = isNew ? 'true' : 'false';
         $('semester-name').value = isNew ? '' : state.semester.name || '';
@@ -435,6 +622,8 @@
           state.semesterId = `semester-${Date.now()}`;
           state.courses = [];
           state.assignments = [];
+          state.events = [];
+          state.exceptions = [];
         }
         state.semester = { name: $('semester-name').value.trim(), startDate: $('semester-start').value, weeks: Number($('semester-weeks').value) || 18 };
         selectedWeek = Math.min(selectedWeek, state.semester.weeks);
@@ -448,8 +637,11 @@
           weekday: Number($('weekday').value), startTime: $('start-time').value, endTime: $('end-time').value,
           startWeek: Number($('start-week').value), endWeek: Number($('end-week').value), pattern: $('pattern').value,
           customWeeks: $('custom-weeks').value.split(',').map(Number).filter(Number.isInteger), color: $('color').value,
-          projectId: $('project').value || null, note: $('note').value.trim(), obsidianLink: $('obsidian-link').value.trim() || null,
+          projectId: $('project').value || null, note: $('note').value.trim(), obsidianLink: $('obsidian-link').value.trim() || null, taskPrefix: $('task-prefix').value.trim() || '[Course]', tagIds: old?.tagIds || [],
         };
+        const otherCourses = state.courses.filter((entry) => entry.id !== course.id);
+        const hasConflict = Array.from({ length: state.semester.weeks }, (_, index) => index + 1).some((week) => conflictIds([...otherCourses, course], week).has(course.id));
+        if (hasConflict && !confirm(await tr('UI.CONFLICT_CONFIRM'))) return;
         state.courses = old ? state.courses.map((entry) => entry.id === course.id ? course : entry) : [...state.courses, course];
         if (old?.taskId) await syncCourse(course);
         await save(); $('course-dialog').close(); await render();
@@ -463,16 +655,42 @@
         if (button.dataset.action === 'edit') return openCourse(course);
         if (button.dataset.action === 'sync') return syncCourses(group ? group.courses : [course]);
         if (button.dataset.action === 'assignment') { $('assignment-course-id').value = group?.key || course.id; $('assignment-title').value = ''; $('assignment-due').value = ''; $('assignment-dialog').showModal(); return; }
-        if (button.dataset.action === 'delete' && confirm(await tr('UI.CONFIRM_DELETE'))) { const ids = new Set((group?.courses || [course]).map((entry) => entry.id)); state.courses = state.courses.filter((entry) => !ids.has(entry.id)); await save(); await render(); }
+        if (button.dataset.action === 'event') return openEvent(null, course.id);
+        if (button.dataset.action === 'exception') return openException(course);
+        if (button.dataset.action === 'delete' && confirm(await tr('UI.CONFIRM_DELETE'))) { const ids = new Set((group?.courses || [course]).map((entry) => entry.id)); state.courses = state.courses.filter((entry) => !ids.has(entry.id)); state.assignments = state.assignments.filter((item) => !ids.has(item.courseId)); state.events = state.events.filter((item) => !ids.has(item.courseId)); state.exceptions = state.exceptions.filter((item) => !ids.has(item.courseId)); await save(); await render(); }
       };
       $('assignment-form').onsubmit = async (event) => {
         event.preventDefault();
         const group = groupForKey($('assignment-course-id').value);
         const course = group?.representative || state.courses.find((entry) => entry.id === $('assignment-course-id').value); if (!course) return;
-        const taskId = await PluginAPI.addTask({ title: `[${course.name}] ${$('assignment-title').value.trim()}`, projectId: course.projectId, notes: `Course: ${course.name}\nCourse IDs: ${(group?.courses || [course]).map((entry) => entry.id).join(', ')}`, dueDay: $('assignment-due').value || null, timeEstimate: (Number($('assignment-estimate').value) || 0) * 60000 });
+        if (typeof PluginAPI.addTask !== 'function') { PluginAPI.showSnack?.({ msg: await tr('UI.SYNC_UNSUPPORTED'), type: 'ERROR' }); return; }
+        const taskId = await PluginAPI.addTask({ title: `${course.taskPrefix || `[${course.name}]`} ${$('assignment-title').value.trim()}`.trim(), projectId: course.projectId, tagIds: course.tagIds || [], notes: `Course: ${course.name}\nCourse IDs: ${(group?.courses || [course]).map((entry) => entry.id).join(', ')}`, dueDay: $('assignment-due').value || null, timeEstimate: (Number($('assignment-estimate').value) || 0) * 60000 });
         (group?.courses || [course]).forEach((entry) => state.assignments.push({ taskId, courseId: entry.id }));
-        await save(); $('assignment-dialog').close();
+        await save(); await refreshTasks(); $('assignment-dialog').close(); await render();
         PluginAPI.showSnack({ msg: await tr('UI.CREATED'), type: 'SUCCESS' });
+      };
+      function openEvent(event = null, courseId = '') {
+        $('event-id').value = event?.id || '';
+        $('event-course').innerHTML = `<option value="">${lookup(LOCAL_TRANSLATIONS[settings.language === 'zh' ? 'zh' : 'en'], 'UI.NONE') || 'None'}</option>` + state.courses.map((course) => `<option value="${esc(course.id)}">${esc(course.name)}</option>`).join('');
+        $('event-course').value = event?.courseId || courseId;
+        $('event-type').value = event?.type || 'assignment'; $('event-title').value = event?.title || ''; $('event-date').value = event?.date || ''; $('event-time').value = event?.time || ''; $('event-notes').value = event?.notes || ''; $('event-task-id').value = event?.taskId || ''; $('event-delete').hidden = !event;
+        $('event-dialog').showModal();
+      }
+      $('event-cancel').onclick = () => $('event-dialog').close();
+      $('event-delete').onclick = async () => { const id = $('event-id').value; if (!id || !confirm(await tr('UI.CONFIRM_DELETE'))) return; state.events = state.events.filter((item) => item.id !== id); await save(); $('event-dialog').close(); await render(); };
+      $('event-form').onsubmit = async (event) => {
+        event.preventDefault(); const old = state.events.find((item) => item.id === $('event-id').value);
+        const item = { id: old?.id || uid(), courseId: $('event-course').value || null, title: $('event-title').value.trim(), type: $('event-type').value, date: $('event-date').value, time: $('event-time').value || null, notes: $('event-notes').value.trim(), taskId: $('event-task-id').value.trim() || null };
+        state.events = old ? state.events.map((entry) => entry.id === item.id ? item : entry) : [...state.events, item]; await save(); $('event-dialog').close(); await render();
+      };
+      function openException(course) {
+        const current = exceptionFor(course.id, selectedWeek); $('exception-course-id').value = course.id; $('exception-week').value = current?.week || selectedWeek; $('exception-cancelled').checked = current?.cancelled || false; $('exception-weekday').innerHTML = $('weekday').innerHTML; $('exception-weekday').value = current?.weekday || course.weekday; $('exception-start').value = current?.startTime || course.startTime; $('exception-end').value = current?.endTime || course.endTime; $('exception-location').value = current?.location || course.location || ''; $('exception-teacher').value = current?.teacher || course.teacher || ''; $('exception-dialog').showModal();
+      }
+      $('exception-cancel').onclick = () => $('exception-dialog').close();
+      $('exception-reset').onclick = async () => { const courseId = $('exception-course-id').value, week = Number($('exception-week').value); state.exceptions = state.exceptions.filter((entry) => !(entry.courseId === courseId && Number(entry.week) === week)); await save(); $('exception-dialog').close(); await render(); };
+      $('exception-form').onsubmit = async (event) => {
+        event.preventDefault(); const courseId = $('exception-course-id').value, week = Number($('exception-week').value); const item = { id: exceptionFor(courseId, week)?.id || uid(), courseId, week, cancelled: $('exception-cancelled').checked, weekday: Number($('exception-weekday').value), startTime: $('exception-start').value, endTime: $('exception-end').value, location: $('exception-location').value.trim(), teacher: $('exception-teacher').value.trim() };
+        state.exceptions = state.exceptions.filter((entry) => !(entry.courseId === courseId && Number(entry.week) === week)); state.exceptions.push(item); await save(); $('exception-dialog').close(); await render();
       };
 
       const headerAliases = {
@@ -754,7 +972,7 @@
             customWeeks: String(source.customWeeks || '').split(/[,，\s]+/).map(Number).filter((week) => Number.isInteger(week) && week > 0), color: /^#[0-9a-f]{6}$/i.test(source.color) ? source.color : '#3f51b5',
             projectId: project?.id || null, note: String(source.note || '').trim(), obsidianLink: String(source.obsidianLink || '').trim() || null,
           };
-        }).filter((course) => course.name);
+        });
       }
       function normalizeTime(value) {
         const text = String(value || '').trim().replace(/[：.]/g, ':');
@@ -766,14 +984,14 @@
         return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}` : null;
       }
       function validateImportedCourses(imported) {
-        let corrected = 0, skipped = 0;
+        let corrected = 0, skipped = 0; const invalid = [];
         const courses = imported.map((course) => {
           const original = JSON.stringify(course);
           const weekday = weekdayNumber(course.weekday);
           const startTime = normalizeTime(course.startTime);
           const endTime = normalizeTime(course.endTime);
           const name = String(course.name || '').replace(/\s+/g, ' ').trim().slice(0, 160);
-          if (!name || !weekday || !startTime || !endTime || minutesOfDay(endTime) <= minutesOfDay(startTime)) { skipped++; return null; }
+          if (!name || !weekday || !startTime || !endTime || minutesOfDay(endTime) <= minutesOfDay(startTime)) { skipped++; invalid.push({ ...course, name: name || String(course.name || ''), _invalid: true }); return null; }
           let startWeek = Math.max(1, Number.parseInt(course.startWeek, 10) || 1);
           let endWeek = Math.max(1, Number.parseInt(course.endWeek, 10) || state.semester.weeks);
           if (startWeek > endWeek) [startWeek, endWeek] = [endWeek, startWeek];
@@ -781,10 +999,10 @@
           startWeek = Math.min(startWeek, maxWeeks); endWeek = Math.min(endWeek, maxWeeks);
           const customWeeks = Array.from(new Set((course.customWeeks || []).map(Number).filter((week) => Number.isInteger(week) && week >= startWeek && week <= endWeek))).sort((a, b) => a - b);
           const normalized = { ...course, name, weekday, startTime, endTime, startWeek, endWeek, customWeeks, pattern: course.pattern === 'custom' && !customWeeks.length ? 'every' : course.pattern };
-          if (JSON.stringify(normalized) !== original) corrected++;
+          if (JSON.stringify(normalized) !== original) { corrected++; normalized._importCorrected = true; }
           return normalized;
         }).filter(Boolean);
-        return { courses, corrected, skipped };
+        return { courses, corrected, skipped, invalid };
       }
       async function readImportFile(file) {
         const buffer = await file.arrayBuffer();
@@ -814,26 +1032,41 @@
         return values[0]?.some((value) => fieldForHeader(value) === 'name') ? rowsToCourses(values) : parseTimetable(grid);
       }
       async function addImportedCourses(parsed) {
-        const { courses: imported, corrected, skipped } = validateImportedCourses(parsed);
-        if (!imported.length) { PluginAPI.showSnack({ msg: await tr('UI.IMPORT_EMPTY'), type: 'ERROR' }); return false; }
-        if (!confirm(await tr('UI.IMPORT_CONFIRM', { count: imported.length, corrected, skipped }))) return false;
+        const { courses: imported, corrected, skipped, invalid } = validateImportedCourses(parsed);
+        if (!imported.length && !invalid.length) { PluginAPI.showSnack({ msg: await tr('UI.IMPORT_EMPTY'), type: 'ERROR' }); return false; }
         const fingerprints = new Set(state.courses.map((course) => `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
-        const additions = imported.filter((course) => !fingerprints.has(`${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
-        state.courses.push(...additions);
-        await save(); await render();
-        PluginAPI.showSnack({ msg: await tr('UI.IMPORTED', { count: additions.length }), type: 'SUCCESS' });
+        const allCourses = [...state.courses, ...imported];
+        const entries = [...imported.map((course) => { const fingerprint = `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase(); const duplicate = fingerprints.has(fingerprint); fingerprints.add(fingerprint); const conflict = Array.from({ length: state.semester.weeks }, (_, index) => index + 1).some((week) => conflictIds(allCourses, week).has(course.id)); return { course, duplicate, conflict, invalid: false, selected: !duplicate }; }), ...invalid.map((course) => ({ course, duplicate: false, conflict: false, invalid: true, selected: false }))];
+        pendingImport = { entries, corrected, skipped };
+        $('import-summary').textContent = `${imported.length} valid · ${corrected} corrected · ${skipped} invalid`;
+        const previewLanguage = settings.language === 'zh' ? 'zh' : 'en';
+        $('import-preview-body').innerHTML = entries.map((entry, index) => { const course = entry.course; const status = entry.invalid ? 'INVALID' : entry.duplicate ? 'DUPLICATE' : entry.conflict ? 'CONFLICT' : course._importCorrected ? 'CORRECTED' : 'VALID'; const day = course.weekday ? lookup(LOCAL_TRANSLATIONS[previewLanguage], `DAY.${course.weekday}`) : '—'; const statusText = lookup(LOCAL_TRANSLATIONS[previewLanguage], `UI.${status}`) || status; return `<tr class="${entry.invalid ? 'danger' : entry.conflict || entry.duplicate ? 'warning' : ''}"><td><label><input type="checkbox" data-import-index="${index}" ${entry.selected ? 'checked' : ''} ${entry.invalid ? 'disabled' : ''} />${esc(course.name || '—')}</label></td><td>${esc(day)}</td><td>${esc(course.startTime || '—')}–${esc(course.endTime || '—')}</td><td>${esc(course.startWeek || '—')}–${esc(course.endWeek || '—')}</td><td>${esc(course.teacher || '')}</td><td>${esc(course.location || '')}</td><td>${esc(statusText)}</td></tr>`; }).join('');
+        $('import-preview-dialog').showModal();
         return true;
       }
+      $('import-preview-cancel').onclick = () => { pendingImport = null; $('import-preview-dialog').close(); };
+      $('import-preview-form').onsubmit = async (event) => {
+        event.preventDefault(); if (!pendingImport) return;
+        document.querySelectorAll('[data-import-index]').forEach((checkbox) => { pendingImport.entries[Number(checkbox.dataset.importIndex)].selected = checkbox.checked; });
+        const additions = pendingImport.entries.filter((entry) => entry.selected && !entry.invalid && !entry.duplicate).map((entry) => { const course = { ...entry.course }; delete course._importCorrected; return course; });
+        state.courses.push(...additions); pendingImport = null; await save(); $('import-preview-dialog').close(); await render(); PluginAPI.showSnack({ msg: await tr('UI.IMPORTED', { count: additions.length }), type: 'SUCCESS' });
+      };
       async function importClipboardContent(html, plain) {
         return addImportedCourses(html ? parseHtml(html) : rowsToCourses(parseCsv(plain)));
       }
-      $('import').onclick = () => $('import-file').click();
+      $('import').onclick = () => $('import-dialog').showModal();
+      document.querySelectorAll('[data-import-accept]').forEach((button) => {
+        button.onclick = () => { $('import-dialog').close(); $('import-file').accept = button.dataset.importAccept; $('import-file').click(); };
+      });
+      $('docx-import').onclick = async () => PluginAPI.showSnack({ msg: await tr('UI.DOCX_PENDING'), type: 'INFO' });
       $('semester-select').onchange = async () => switchSemester($('semester-select').value);
       $('clear-semester').onclick = async () => {
-        if (!state.courses.length && !state.assignments.length) return;
+        if (!state.courses.length && !state.assignments.length && !state.events.length) return;
         if (!confirm(await tr('UI.CONFIRM_CLEAR_SEMESTER'))) return;
         state.courses = [];
         state.assignments = [];
+        state.events = [];
+        state.exceptions = [];
         await save();
         await render();
       };
@@ -850,7 +1083,7 @@
           $('import-file').value = '';
         }
       };
-      $('paste-import').onclick = () => { $('paste-area').value = ''; $('paste-dialog').showModal(); $('paste-area').focus(); };
+      $('paste-import').onclick = () => { $('import-dialog').close(); $('paste-area').value = ''; $('paste-dialog').showModal(); $('paste-area').focus(); };
       $('paste-cancel').onclick = () => $('paste-dialog').close();
       $('paste-area').onpaste = async (event) => {
         event.preventDefault();
@@ -868,18 +1101,19 @@
 
       function pad(value) { return String(value).padStart(2, '0'); }
       function icsDate(date) { return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`; }
-      function sendDownload(filename, data, type) {
-        window.parent.postMessage({ source: 'sp-study-courses', type, filename, data }, '*');
+      async function sendDownload(filename, data, type) {
+        try { if (typeof PluginAPI.downloadFile === 'function') { await PluginAPI.downloadFile(filename, data); return; } } catch (error) { console.error(error); }
+        try { const blob = new Blob([data], { type: filename.endsWith('.ics') ? 'text/calendar' : 'text/plain' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+        catch (error) { console.error(error); window.parent.postMessage({ source: 'sp-study-courses', type, filename, data }, '*'); }
       }
       function buildIcs() {
         if (!state.semester.startDate) return;
         const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Super Productivity//Study Courses//EN'];
-        for (const course of state.courses) for (let week = course.startWeek; week <= course.endWeek; week++) if (isActive(course, week)) {
-          const base = new Date(`${state.semester.startDate}T00:00:00`); base.setDate(base.getDate() + (week - 1) * 7 + course.weekday - 1);
-          const start = new Date(base); const [sh, sm] = course.startTime.split(':').map(Number); start.setHours(sh, sm);
-          const end = new Date(base); const [eh, em] = course.endTime.split(':').map(Number); end.setHours(eh, em);
-          lines.push('BEGIN:VEVENT', `UID:${course.id}-${week}@super-productivity`, `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`, `SUMMARY:${course.name.replace(/[,;]/g, ' ')}`, `LOCATION:${course.location.replace(/[,;]/g, ' ')}`, 'END:VEVENT');
+        for (const course of state.courses) for (let week = course.startWeek; week <= course.endWeek; week++) {
+          const occurrence = occurrenceFor(course, week); if (!occurrence) continue; const resolved = occurrence.course;
+          lines.push('BEGIN:VEVENT', `UID:${course.id}-${week}@super-productivity`, `DTSTART:${icsDate(occurrence.start)}`, `DTEND:${icsDate(occurrence.end)}`, `SUMMARY:${resolved.name.replace(/[,;]/g, ' ')}`, `LOCATION:${String(resolved.location || '').replace(/[,;]/g, ' ')}`, `DESCRIPTION:${String(resolved.teacher || '').replace(/[\r\n,;]/g, ' ')}`, 'END:VEVENT');
         }
+        state.events.forEach((event) => { if (!event.date) return; const start = new Date(`${event.date}T${event.time || '09:00'}:00`); const end = new Date(start.getTime() + 3600000); lines.push('BEGIN:VEVENT', `UID:event-${event.id}@super-productivity`, `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`, `SUMMARY:${event.title.replace(/[,;]/g, ' ')}`, `DESCRIPTION:${String(event.notes || '').replace(/[\r\n,;]/g, ' ')}`, 'END:VEVENT'); });
         lines.push('END:VCALENDAR');
         return lines.join('\r\n');
       }
@@ -889,14 +1123,17 @@
         return [fields.join(','), ...state.courses.map((course) => fields.map((field) => csvCell(Array.isArray(course[field]) ? course[field].join(',') : course[field])).join(','))].join('\r\n');
       }
       $('export').onclick = () => $('export-dialog').showModal();
-      $('export-ics').onclick = () => { const data = buildIcs(); if (data) { sendDownload(`${state.semester.name || 'timetable'}.ics`.replace(/[<>:"/\\|?*]/g, '_'), data, 'DOWNLOAD_ICS'); $('export-dialog').close(); } };
-      $('export-csv').onclick = () => { sendDownload(`${state.semester.name || 'timetable'}.csv`.replace(/[<>:"/\\|?*]/g, '_'), buildCsv(), 'DOWNLOAD_TEXT'); $('export-dialog').close(); };
-      $('export-json').onclick = () => { sendDownload(`${state.semester.name || 'timetable'}.json`.replace(/[<>:"/\\|?*]/g, '_'), JSON.stringify(state, null, 2), 'DOWNLOAD_TEXT'); $('export-dialog').close(); };
+      $('export-ics').onclick = async () => { const data = buildIcs(); if (data) { await sendDownload(`${state.semester.name || 'timetable'}.ics`.replace(/[<>:"/\\|?*]/g, '_'), data, 'DOWNLOAD_ICS'); $('export-dialog').close(); } };
+      $('export-csv').onclick = async () => { await sendDownload(`${state.semester.name || 'timetable'}.csv`.replace(/[<>:"/\\|?*]/g, '_'), buildCsv(), 'DOWNLOAD_TEXT'); $('export-dialog').close(); };
+      $('export-json').onclick = async () => { await sendDownload(`${state.semester.name || 'timetable'}.json`.replace(/[<>:"/\\|?*]/g, '_'), JSON.stringify({ ...state, settings }, null, 2), 'DOWNLOAD_TEXT'); $('export-dialog').close(); };
 
-      async function init() { await load(); applySettings(); await applyTranslations(); renderSemesterOptions(); await render(); }
-      setInterval(() => { if (document.visibilityState === 'visible') renderStatus(); }, 60000);
-      PluginAPI.registerHook(PluginAPI.Hooks.LANGUAGE_CHANGE, async () => { await applyTranslations(); await render(); });
-      PluginAPI.registerHook(PluginAPI.Hooks.PERSISTED_DATA_CHANGED, init);
+      async function init() { await load(); if (!initialized && isMobile()) activeView = 'today'; initialized = true; applySettings(); await applyTranslations(); renderSemesterOptions(); await render(); }
+      setInterval(() => { if (document.visibilityState === 'visible') activeView === 'today' ? renderToday() : activeView === 'timetable' ? renderStatus() : null; }, 60000);
+      if (typeof PluginAPI.registerHook === 'function' && PluginAPI.Hooks) {
+        PluginAPI.registerHook(PluginAPI.Hooks.LANGUAGE_CHANGE, async () => { await applyTranslations(); await render(); });
+        PluginAPI.registerHook(PluginAPI.Hooks.PERSISTED_DATA_CHANGED, init);
+        for (const hook of [PluginAPI.Hooks.TASK_UPDATE, PluginAPI.Hooks.TASK_COMPLETE, PluginAPI.Hooks.TASK_DELETE].filter(Boolean)) PluginAPI.registerHook(hook, async () => { await refreshTasks(); await render(); });
+      }
       init();
     </script>
   </body>
