@@ -4,7 +4,7 @@
 
 Manage university courses, teaching weeks, assignments, timetable imports, and calendar exports directly inside Super Productivity.
 
-The current `2.1.0` workbench adds Timetable, Plan, and Today views, course events, one-week rescheduling/cancellation, import preview, conflict warnings, and mobile navigation. DOCX table import and offline XLSX parsing are planned next; the current XLSX importer still loads SheetJS from a CDN and therefore requires network access.
+Version `2.2.0` includes the Timetable, Plan, and Today workbench plus self-contained XLSX and DOCX timetable import. Workbook sheets and Word tables are scored automatically; the best recognized timetable is previewed before it is saved. Image-only Word documents are not OCRed.
 
 [English](#english) | [中文](#中文)
 
@@ -115,7 +115,7 @@ The plugin does **not**:
 - Delete projects
 - Modify unrelated task data
 
-Mobile fallbacks: paste plain text if clipboard HTML is unavailable; use CSV/HTML or paste if XLSX cannot load; DOCX currently shows an explicit not-yet-supported message. Downloads use the Plugin API when available and a browser download fallback otherwise. The plugin does not use Electron or Node.js APIs at runtime.
+Mobile fallbacks: paste plain text if clipboard HTML is unavailable; use CSV/HTML or paste if the WebView cannot decompress Office files. XLSX and DOCX parsing use browser APIs and do not load a remote parser. Downloads use the Plugin API when available and a browser download fallback otherwise. The plugin does not use Electron or Node.js APIs at runtime.
 
 ---
 
@@ -257,7 +257,7 @@ Super Productivity >= 18.21.2
 - 删除项目
 - 修改无关任务数据
 
-`2.1.0` 工作台增加了「课表 / 计划 / 今日」、课程事件、单周调课与停课、导入预览、冲突提示和手机端导航。当前 XLSX 仍通过 CDN 加载解析库，离线时可改用 CSV、HTML 或粘贴；DOCX 导入正在完善，当前会给出明确提示。剪贴板没有 HTML 时可粘贴纯文本；文件下载优先使用 Plugin API，并尝试浏览器下载。插件运行时不依赖 Electron 或 Node.js。
+`2.2.0` 已包含「课表 / 计划 / 今日」、课程事件、单周调课与停课、导入预览、冲突提示和手机端导航。XLSX 与 DOCX 课表直接在插件内解析，不再从 CDN 加载解析库；多工作表 / 多表格会自动选择识别结果最多的一项。图片型 Word 不做 OCR。旧版 WebView 若不能解压 Office 文件，可改用 CSV、HTML 或粘贴。文件下载优先使用 Plugin API，并尝试浏览器下载；插件运行时不依赖 Electron 或 Node.js。
 
 ---
 
