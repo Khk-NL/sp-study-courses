@@ -12,7 +12,8 @@ const minifiedCss = await transform(css[1], { loader: 'css', minify: true, targe
 const minifiedScript = await minifyScript(script[1], { compress: { passes: 3, toplevel: true }, mangle: { toplevel: true, reserved: ['state', 'settings', 'activeView', 'selectedWeek', 'isMobile', 'render', 'parseXlsx', 'parseDocx', 'parseHtml'] }, format: { comments: false } });
 const withMinifiedAssets = source
   .replace(css[0], `<style>${minifiedCss.code}</style>`)
-  .replace(script[0], `<script>${minifiedScript.code}</script>`);
+  .replace(script[0], `<script>${minifiedScript.code}</script>`)
+  .replace(/(<([a-z][\w-]*)\b[^>]*\bdata-i18n="[^"]+"[^>]*>)[^<]*(<\/\2>)/g, '$1$3');
 const output = await minify(withMinifiedAssets, {
   collapseWhitespace: true,
   removeComments: true,

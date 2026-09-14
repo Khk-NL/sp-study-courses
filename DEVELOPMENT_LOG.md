@@ -122,3 +122,12 @@
 - Group same-name course sections in the lower list; show only visible sections, aggregate linked tasks, and use two direct actions plus a More menu.
 - Add independent show/hide switches for all seven statistics in synced UI settings. The chosen visibility applies to timetable and Today.
 - Added overlap and statistics regression checks. The packaged HTML remains below the 100,000-byte installation limit.
+
+## 2026-09-15
+
+### v2.5.1 language-switch repair
+
+- Translate previously hard-coded event types, import-preview counts/status header, course section count, JSON export label, and accessibility labels.
+- Use the selected or SP-following language for dynamically rendered event badges and import preview, including the language-change hook.
+- Strip redundant fallback text only from built HTML elements with `data-i18n`; readable source text remains. Packaged iframe still stays below 100,000 bytes.
+- Added Chinese, English, and automatic-language regression checks.

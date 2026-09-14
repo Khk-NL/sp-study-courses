@@ -57,6 +57,16 @@ assert.equal(evaluate("weekdayFromText('星期五')"), 5);
 assert.deepEqual(Array.from(evaluate("parseWeekSpec('1~3,5~16周').weeks")), [1,2,3,5,6,7,8,9,10,11,12,13,14,15,16]);
 assert.equal(evaluate("parseWeekSpec('单周').pattern"), 'odd');
 assert.equal(evaluate("parseWeekSpec('双周').pattern"), 'even');
+evaluate("settings.language = 'zh'");
+assert.equal(evaluate("localText('UI.EVENT_EXAM')"), '考试');
+assert.ok(evaluate("eventLabel({ type:'quiz', title:'测验' })").includes('小测'));
+evaluate("pendingImport = { entries:[], corrected:2 }; renderImportPreview()");
+assert.equal(element('import-summary').textContent, '有效 0 · 已修正 2 · 无效 0');
+evaluate("settings.language = 'auto'; PluginAPI.cfg.lang.code = 'zh-CN'");
+assert.equal(evaluate("localText('UI.NONE')"), '无');
+evaluate("settings.language = 'en'; PluginAPI.cfg.lang.code = 'en'");
+assert.equal(evaluate("localText('UI.EVENT_EXAM')"), 'Exam');
+evaluate('pendingImport = null');
 
 const structured = readFileSync(new URL('./fixtures/structured.csv', import.meta.url), 'utf8').trimEnd();
 context.structured = structured;
