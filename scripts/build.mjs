@@ -18,8 +18,9 @@ const output = await minify(withMinifiedAssets, {
   collapseWhitespace: true,
   removeComments: true,
   removeAttributeQuotes: true,
-  minifyCSS: false,
-  minifyJS: false,
+  removeOptionalTags: true,
+  minifyCSS: true,
+  minifyJS: true,
 });
 const bytes = Buffer.byteLength(output, 'utf8');
 if (bytes >= 100_000) throw new Error(`Built index.html is ${bytes} bytes; plugin limit is 100,000`);
