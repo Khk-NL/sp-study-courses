@@ -194,6 +194,8 @@ Parser fixtures must cover:
 - Update manifest and package versions together.
 - Run syntax, JSON, parser, state-migration, and focused UI smoke checks before each push.
 - Release ZIPs must contain the built `dist/index.html`, and CI must reject a packaged iframe file of 100,000 bytes or more.
+- For same-name course occurrences that overlap in one teaching week, show the longer occurrence and exclude the shorter one from conflict counts, live status, statistics and ICS without deleting stored course records.
+- Offer a per-statistic visibility setting for all seven course statistics; persist it through synced UI settings.
 - Push normal fast-forward commits to `main`; never overwrite remote history with force push.
 
 Planned release groups:

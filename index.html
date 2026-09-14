@@ -26,7 +26,11 @@
       .course-bottom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 40%); gap: var(--s2); align-items: end; margin-top: var(--s); }
       .course-description { min-width: 0; overflow-wrap: anywhere; }
       .course-description p { margin: var(--s) 0; }
-      .course-actions > .actions { justify-content: flex-end; }
+      .course-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: var(--s); }
+      .course-more { position: relative; }
+      .course-more > summary { list-style: none; cursor: pointer; }
+      .course-more > summary::-webkit-details-marker { display: none; }
+      .course-more-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; display: grid; gap: var(--s); min-width: 150px; padding: var(--s); border: 1px solid var(--divider-color); border-radius: 6px; background: var(--bg); box-shadow: var(--whiteframe-shadow-4dp); }
       .timeline { position: relative; min-height: 900px; border-top: 1px solid var(--divider-color); background: repeating-linear-gradient(to bottom, transparent 0, transparent 59px, var(--divider-color) 60px); }
       .timeline-hours { position: relative; height: 900px; color: var(--text-color-muted); font-size: .72rem; }
       .timeline-hours span { position: absolute; left: 0; transform: translateY(-.5em); }
@@ -49,7 +53,6 @@
       .task-list { margin: var(--s) 0 0; padding-left: 22px; }
       .task-row, .event-row { margin: 6px 0; }
       .badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: .72rem; background: color-mix(in srgb, var(--plugin-accent, var(--c-accent)) 18%, transparent); }
-      .course-actions > summary { display: none; }
       .warning { color: #b45309; }
       .danger { color: #dc2626; }
       .preview-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
@@ -58,6 +61,9 @@
       .help-copy { max-height: 68vh; overflow: auto; line-height: 1.6; }
       .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--s); }
       .stat { padding: var(--s2); border: 1px solid var(--divider-color); border-radius: 6px; }
+      .stat-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s); }
+      .stat-options label { display: flex; align-items: center; gap: var(--s); }
+      .stat-options input { width: auto; min-height: 20px; }
       #course-tag-choices label { display: inline-flex; align-items: center; gap: 6px; } #course-tag-choices input { width: auto; min-height: 20px; }
       .mobile-only, .bottom-nav { display: none; }
       .class-time, .muted { color: var(--text-color-muted); font-size: .9rem; }
@@ -83,7 +89,7 @@
         .toolbar { align-items: flex-start; } .toolbar h1 { font-size: 1.2rem; } .toolbar .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr auto; }
         .toolbar #export, .toolbar #sync-all, .toolbar #help, .toolbar #settings { display: none; } .mobile-only { display: inline-flex; }
         .week-grid, .week-grid.with-time-axis { display: block; overflow: visible; } .timeline-axis { display: none; } .day { min-width: 0; } .class-card { min-height: 44px; }
-        .view-tabs { display: none; } .course-bottom { grid-template-columns: 1fr; } .course-actions { width: 100%; } .course-actions > summary { display: block; list-style: none; text-align: center; } .course-actions > .actions { margin-top: 8px; width: 100%; } .course-actions > .actions button { min-width: 44px; flex: 1 1 110px; }
+        .view-tabs { display: none; } .course-bottom, .stat-options { grid-template-columns: 1fr; } .course-actions { width: 100%; } .course-actions > button, .course-more { flex: 1 1 0; } .course-more > summary { text-align: center; } .course-more-menu { min-width: 160px; }
         button, summary, input, select { min-height: 44px; } dialog { box-sizing: border-box; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 0; border: 0; } dialog form { min-height: calc(100dvh - 32px); align-content: start; }
         .preview-table, .preview-table tbody, .preview-table tr, .preview-table td { display: block; width: 100%; box-sizing: border-box; } .preview-table thead { display: none; } .preview-table tr { margin-bottom: 10px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 8px; } .preview-table td { border: 0; padding: 3px 0; }
         .bottom-nav { position: fixed; display: grid; grid-template-columns: repeat(4, 1fr); left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 1px solid var(--divider-color); padding: 4px env(safe-area-inset-right) calc(4px + env(safe-area-inset-bottom)) env(safe-area-inset-left); } .bottom-nav button { border: 0; background: transparent; color: inherit; }
@@ -177,8 +183,8 @@
         <label><span data-i18n="UI.ACCENT">Card accent color</span><select id="settings-accent"><option value="theme" data-i18n="UI.FOLLOW_THEME">Follow SP theme</option><option value="blue" data-i18n="UI.BLUE">Blue</option><option value="green" data-i18n="UI.GREEN">Green</option><option value="orange" data-i18n="UI.ORANGE">Orange</option><option value="purple" data-i18n="UI.PURPLE">Purple</option><option value="custom" data-i18n="UI.CUSTOM_COLOR">Custom</option></select></label>
         <label id="custom-color-row"><span data-i18n="UI.CUSTOM_COLOR_VALUE">Custom card color</span><input id="settings-custom-color" type="color" value="#3b82f6" /></label>
         <label><input id="settings-weekends" type="checkbox" /><span data-i18n="UI.SHOW_WEEKENDS">Show weekends</span></label>
-        <label><input id="settings-merge-names" type="checkbox" /><span data-i18n="UI.MERGE_NAMES">Merge courses with the same name</span></label>
         <label><span data-i18n="UI.TIME_LABELS">Timeline time labels</span><select id="settings-time-labels"><option value="each" data-i18n="UI.TIME_EACH">Show on every course</option><option value="shared" data-i18n="UI.TIME_SHARED">Merge identical times on the left</option></select></label>
+        <fieldset><legend data-i18n="UI.STATS_VISIBILITY">Show statistics</legend><div id="settings-stat-options" class="stat-options"></div></fieldset>
         <div class="actions"><button id="settings-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div>
       </form>
     </dialog>
@@ -207,7 +213,8 @@
 
     <script>
       let state = { version: 3, semesterId: 'default', semester: { name: '', startDate: '', weeks: 18 }, courses: [], assignments: [], events: [], exceptions: [], semesters: {} };
-      let settings = { density: 'comfortable', language: 'auto', accent: 'theme', customColor: '#3b82f6', showWeekends: true, displayMode: 'timeline', mergeNames: false, timeLabels: 'shared', courseSort: 'time' };
+      const STAT_KEYS = ['UI.STAT_WEEK_HOURS', 'UI.STAT_TODAY_HOURS', 'UI.STAT_EARLY', 'UI.STAT_LATE', 'UI.STAT_PROGRESS', 'UI.STAT_FREE', 'UI.STAT_BUSY'];
+      let settings = { density: 'comfortable', language: 'auto', accent: 'theme', customColor: '#3b82f6', showWeekends: true, displayMode: 'timeline', timeLabels: 'shared', courseSort: 'time', hiddenStats: [] };
       let projects = [];
       let tags = [];
       let selectedWeek = 1;
@@ -222,10 +229,10 @@
         en: { UI: { TITLE:'Courses & Timetable', COURSES:'Courses', SEMESTER:'Semester', CURRENT_SEMESTER:'Current semester', NEW_SEMESTER:'New semester', NEW_SEMESTER_NAME:'Enter semester name', CLEAR_SEMESTER:'Clear current timetable', CONFIRM_CLEAR_SEMESTER:'Clear all courses and assignments in the current semester?', SEMESTER_NAME:'Semester name', START_DATE:'First Monday', WEEKS:'Weeks', SAVE_SEMESTER:'Save semester', WEEK:'Week', PREVIOUS:'Previous', NEXT:'Next', ADD_COURSE:'Add course', IMPORT:'Import CSV / HTML', EXPORT_ICS:'Export timetable (.ics)', SYNC_ALL:'Sync to plan', SYNC:'Sync', NO_CLASSES:'No classes this week.', CURRENT:'Now: {{name}} ({{time}})', FREE_NOW:'No class now', NEXT_CLASS:'Next: {{name}} at {{time}}', NO_NEXT:'No more classes today', SINCE_START:'Starts in {{minutes}} min', UNTIL_END:'Ends in {{minutes}} min', SYNCED:'Plan synced', SYNC_UNSUPPORTED:'This SP version cannot update existing tasks.', COURSE_NAME:'Course name', TEACHER:'Teacher', LOCATION:'Location', WEEKDAY:'Weekday', START_TIME:'Start time', END_TIME:'End time', START_WEEK:'Start week', END_WEEK:'End week', PATTERN:'Week pattern', CUSTOM_WEEKS:'Custom weeks (comma separated)', COLOR:'Color', NOTE:'Note', OBSIDIAN_LINK:'Obsidian link', PROJECT:'Assignment project', NONE:'None', EVERY:'Every week', ODD:'Odd weeks', EVEN:'Even weeks', CUSTOM:'Custom weeks', SAVE:'Save', CANCEL:'Cancel', EDIT:'Edit', DELETE:'Delete', ADD_ASSIGNMENT:'Add assignment', ASSIGNMENT_TITLE:'Assignment title', DUE_DAY:'Due date', ESTIMATE:'Estimate (minutes)', CREATED:'Assignment task created', SAVED:'Course saved', CONFIRM_DELETE:'Delete this course?', IMPORT_CONFIRM:'Import {{count}} courses? {{corrected}} corrected, {{skipped}} invalid skipped. Existing duplicates will also be skipped.', IMPORTED:'Imported {{count}} courses', IMPORT_EMPTY:'No recognizable course rows were found.', SETTINGS:'Settings', DENSITY:'Layout density', COMFORTABLE:'Comfortable', COMPACT:'Compact', LANGUAGE:'Plugin language', LANGUAGE_AUTO:'Follow SP language', ACCENT:'Card accent color', FOLLOW_THEME:'Follow SP theme', BLUE:'Blue', GREEN:'Green', ORANGE:'Orange', PURPLE:'Purple', CUSTOM_COLOR:'Custom', CUSTOM_COLOR_VALUE:'Custom card color', SHOW_WEEKENDS:'Show weekends', SETTINGS_SAVED:'Settings saved' }, DAY: { 1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday', 7:'Sunday' } },
         zh: { UI: { TITLE:'课程与课表', COURSES:'课程列表', SEMESTER:'学期', CURRENT_SEMESTER:'当前学期', NEW_SEMESTER:'新建学期', NEW_SEMESTER_NAME:'请输入学期名称', CLEAR_SEMESTER:'清空当前学期课表', CONFIRM_CLEAR_SEMESTER:'确定清空当前学期的课程和作业吗？', SEMESTER_NAME:'学期名称', START_DATE:'第一周周一', WEEKS:'总周数', SAVE_SEMESTER:'保存学期', WEEK:'第 {{count}} 周', PREVIOUS:'上一周', NEXT:'下一周', ADD_COURSE:'添加课程', IMPORT:'导入 CSV / HTML', EXPORT_ICS:'导出课表（.ics）', SYNC_ALL:'同步到计划', SYNC:'同步', NO_CLASSES:'本周没有课程。', CURRENT:'现在：{{name}}（{{time}}）', FREE_NOW:'当前没有课', NEXT_CLASS:'下一节：{{name}}，{{time}} 开始', NO_NEXT:'今天没有下一节课', SINCE_START:'距离上课还有 {{minutes}} 分钟', UNTIL_END:'距离下课还有 {{minutes}} 分钟', SYNCED:'计划已同步', SYNC_UNSUPPORTED:'当前 SP 版本不支持更新已有任务。', COURSE_NAME:'课程名称', TEACHER:'教师', LOCATION:'地点', WEEKDAY:'星期', START_TIME:'开始时间', END_TIME:'结束时间', START_WEEK:'开始周', END_WEEK:'结束周', PATTERN:'周次模式', CUSTOM_WEEKS:'自定义周次（逗号分隔）', COLOR:'颜色', NOTE:'备注', OBSIDIAN_LINK:'Obsidian 链接', PROJECT:'作业所属项目', NONE:'无', EVERY:'每周', ODD:'单周', EVEN:'双周', CUSTOM:'自定义周次', SAVE:'保存', CANCEL:'取消', EDIT:'编辑', DELETE:'删除', ADD_ASSIGNMENT:'添加作业', ASSIGNMENT_TITLE:'作业标题', DUE_DAY:'截止日期', ESTIMATE:'预计耗时（分钟）', CREATED:'作业任务已创建', SAVED:'课程已保存', CONFIRM_DELETE:'删除这门课程？', IMPORT_CONFIRM:'识别到 {{count}} 门课程，其中自动修正 {{corrected}} 门、跳过无效数据 {{skipped}} 门。已有重复课程也会跳过。', IMPORTED:'已导入 {{count}} 门课程', IMPORT_EMPTY:'没有识别到有效的课程行。', SETTINGS:'设置', DENSITY:'界面密度', COMFORTABLE:'舒适', COMPACT:'紧凑', LANGUAGE:'插件语言', LANGUAGE_AUTO:'跟随 SP 语言', ACCENT:'卡片强调色', FOLLOW_THEME:'跟随 SP 主题', BLUE:'蓝色', GREEN:'绿色', ORANGE:'橙色', PURPLE:'紫色', CUSTOM_COLOR:'自定义', CUSTOM_COLOR_VALUE:'自定义卡片颜色', SHOW_WEEKENDS:'显示周末', SETTINGS_SAVED:'设置已保存' }, DAY: { 1:'周一', 2:'周二', 3:'周三', 4:'周四', 5:'周五', 6:'周六', 7:'周日' } }
       };
-      Object.assign(LOCAL_TRANSLATIONS.en.UI, { EDIT_SEMESTER:'Edit semester', PASTE_IMPORT:'Paste timetable', EXPORT:'Export', TIMELINE:'Timeline', LIST:'Compact list', HELP:'Help', HELP_TITLE:'Using the timetable', CLOSE:'Close', PASTE_TITLE:'Paste web timetable', PASTE_HINT:'Copy a timetable from your school website and paste it here.', MERGE_NAMES:'Merge courses with the same name', TIME_LABELS:'Timeline time labels', TIME_EACH:'Show on every course', TIME_SHARED:'Merge identical times on the left', HELP_BODY:'Quick start: set the semester, then import a timetable or add a course. The current week shows active courses; Sync sends courses to your Super Productivity plan. Export creates ICS, CSV, or JSON backups. Supported imports: CSV timetable, structured CSV, HTML tables, pasted web timetables, and XLSX. CSV timetable cells may contain course, teacher, room, and weeks; structured CSV uses one course per row; HTML preserves table, rowspan, and colspan structure. Examples: 1~3,5~16 weeks, 4 week, odd weeks, even weeks, custom weeks 1,3,5, and weekdays Monday/周一.' });
-      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EDIT_SEMESTER:'编辑学期', PASTE_IMPORT:'粘贴网页课表', EXPORT:'导出', TIMELINE:'时间轴', LIST:'紧凑列表', HELP:'帮助', HELP_TITLE:'使用说明', CLOSE:'关闭', PASTE_TITLE:'粘贴网页课表', PASTE_HINT:'从教务系统复制课表后粘贴到这里。', MERGE_NAMES:'合并同名课程', TIME_LABELS:'时间轴时间显示', TIME_EACH:'每节课上方显示', TIME_SHARED:'相同时间合并到左侧', HELP_BODY:'快速开始：先设置学期，再导入课表或手动添加课程。当前周显示正在进行的课程；同步会把课程发送到 Super Productivity 计划。导出支持 ICS、CSV 和 JSON 备份。支持 CSV 周课表、结构化 CSV、HTML 表格、粘贴网页课表和 XLSX。CSV 周课表单元格可包含课程、教师、地点和周次；结构化 CSV 每行是一门课程；HTML 会保留 table、rowspan 和 colspan。示例：1~3,5~16周、4周、单周、双周、自定义周次 1,3,5，以及 周一 / Monday 等多语言星期。' });
-      Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:'Plan', VIEW_TODAY:'Today', TODAY_COURSES:"Today's classes", TODAY_TASKS:"Today's tasks", TODAY_DDL:"Today's deadlines", UPCOMING_EVENTS:'Upcoming events', EVENT:'Course event', EVENT_TYPE:'Event type', ADD_EVENT:'Add event', NO_EVENTS:'Nothing scheduled', EXCEPTION:'Reschedule / cancel', RESET_EXCEPTION:'Use normal schedule', CANCEL_CLASS:'Cancel this class', TASK_PREFIX:'Task title prefix', ADD_TASK:'Add task', OPEN_TASKS:'open tasks', SYNCED_STATUS:'Synced', NOT_SYNCED:'Not synced', OPEN_NOTES:'Open course notes', ACTIONS:'Course actions', CONFLICT_CONFIRM:'This course conflicts with another class in at least one week. Save anyway?', IMPORT_PREVIEW:'Import preview', VALID:'Valid', DUPLICATE:'Duplicate', CONFLICT:'Conflict', INVALID:'Invalid', CORRECTED:'Corrected', MORE:'More', DOCX_PENDING:'DOCX table import is being completed for the next release. Use web paste, HTML, CSV, or XLSX for now.' });
-      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { VIEW_TIMETABLE:'课表', VIEW_PLAN:'计划', VIEW_TODAY:'今日', TODAY_COURSES:'今天全部课程', TODAY_TASKS:'今日任务', TODAY_DDL:'今日 DDL', UPCOMING_EVENTS:'即将发生的课程事件', EVENT:'课程事件', EVENT_TYPE:'事件类型', ADD_EVENT:'添加事件', NO_EVENTS:'暂无安排', EXCEPTION:'调课 / 停课', RESET_EXCEPTION:'恢复正常课表', CANCEL_CLASS:'本周停课', TASK_PREFIX:'默认任务标题前缀', ADD_TASK:'添加任务', OPEN_TASKS:'个未完成任务', SYNCED_STATUS:'已同步', NOT_SYNCED:'未同步', OPEN_NOTES:'打开课程笔记', ACTIONS:'课程操作', CONFLICT_CONFIRM:'这门课程至少在一周内与其他课程时间冲突，仍然保存吗？', IMPORT_PREVIEW:'导入预览', VALID:'有效', DUPLICATE:'重复', CONFLICT:'冲突', INVALID:'无效', CORRECTED:'已修正', MORE:'更多', DOCX_PENDING:'DOCX 表格导入将在下一版本完成。当前请使用网页粘贴、HTML、CSV 或 XLSX。' });
+Object.assign(LOCAL_TRANSLATIONS.en.UI, { EDIT_SEMESTER:'Edit semester', PASTE_IMPORT:'Paste timetable', EXPORT:'Export', TIMELINE:'Timeline', LIST:'Compact list', HELP:'Help', HELP_TITLE:'Using the timetable', CLOSE:'Close', PASTE_TITLE:'Paste web timetable', PASTE_HINT:'Copy a timetable from your school website and paste it here.', TIME_LABELS:'Timeline time labels', TIME_EACH:'Show on every course', TIME_SHARED:'Merge identical times on the left' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EDIT_SEMESTER:'编辑学期', PASTE_IMPORT:'粘贴网页课表', EXPORT:'导出', TIMELINE:'时间轴', LIST:'紧凑列表', HELP:'帮助', HELP_TITLE:'使用说明', CLOSE:'关闭', PASTE_TITLE:'粘贴网页课表', PASTE_HINT:'从教务系统复制课表后粘贴到这里。', TIME_LABELS:'时间轴时间显示', TIME_EACH:'每节课上方显示', TIME_SHARED:'相同时间合并到左侧' });
+Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:'Plan', VIEW_TODAY:'Today', TODAY_COURSES:"Today's classes", TODAY_TASKS:"Today's tasks", TODAY_DDL:"Today's deadlines", UPCOMING_EVENTS:'Upcoming events', EVENT:'Course event', EVENT_TYPE:'Event type', ADD_EVENT:'Add event', NO_EVENTS:'Nothing scheduled', EXCEPTION:'Reschedule / cancel', RESET_EXCEPTION:'Use normal schedule', CANCEL_CLASS:'Cancel this class', TASK_PREFIX:'Task title prefix', ADD_TASK:'Add task', OPEN_TASKS:'open tasks', SYNCED_STATUS:'Synced', NOT_SYNCED:'Not synced', OPEN_NOTES:'Open course notes', ACTIONS:'Course actions', CONFLICT_CONFIRM:'This course conflicts with another class in at least one week. Save anyway?', IMPORT_PREVIEW:'Import preview', VALID:'Valid', DUPLICATE:'Duplicate', CONFLICT:'Conflict', INVALID:'Invalid', CORRECTED:'Corrected', MORE:'More' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { VIEW_TIMETABLE:'课表', VIEW_PLAN:'计划', VIEW_TODAY:'今日', TODAY_COURSES:'今天全部课程', TODAY_TASKS:'今日任务', TODAY_DDL:'今日 DDL', UPCOMING_EVENTS:'即将发生的课程事件', EVENT:'课程事件', EVENT_TYPE:'事件类型', ADD_EVENT:'添加事件', NO_EVENTS:'暂无安排', EXCEPTION:'调课 / 停课', RESET_EXCEPTION:'恢复正常课表', CANCEL_CLASS:'本周停课', TASK_PREFIX:'默认任务标题前缀', ADD_TASK:'添加任务', OPEN_TASKS:'个未完成任务', SYNCED_STATUS:'已同步', NOT_SYNCED:'未同步', OPEN_NOTES:'打开课程笔记', ACTIONS:'课程操作', CONFLICT_CONFIRM:'这门课程至少在一周内与其他课程时间冲突，仍然保存吗？', IMPORT_PREVIEW:'导入预览', VALID:'有效', DUPLICATE:'重复', CONFLICT:'冲突', INVALID:'无效', CORRECTED:'已修正', MORE:'更多' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { OFFICE_UNSUPPORTED:'This device cannot decompress Office files. Try CSV, HTML, or web paste.', XLSX_NO_SHEET:'No timetable worksheet was found in this workbook.', DOCX_IMAGE_ONLY:'This Word file appears to contain only a timetable image. OCR is not supported.', DOCX_NO_TABLE:'No timetable table or supported course paragraphs were found in this Word file.' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { OFFICE_UNSUPPORTED:'当前设备无法解压 Office 文件，请改用 CSV、HTML 或网页粘贴。', XLSX_NO_SHEET:'工作簿中没有找到可识别的课表工作表。', DOCX_IMAGE_ONLY:'Word 文件似乎只有课表图片；目前不支持 OCR。', DOCX_NO_TABLE:'Word 文件中没有找到可识别的课表表格或课程段落。' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { SORT_BY:'Sort by', SORT_TIME:'Time', SORT_NAME:'Name' });
@@ -234,8 +241,8 @@
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { COPY_LINK:'复制链接', COPY_MANUAL:'若未能打开，请选中并复制上方链接。', COPIED:'链接已复制' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { EXPORT_FALLBACK:'If the download did not start, copy the file contents below.', COPY_EXPORT:'Copy contents' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EXPORT_FALLBACK:'如果下载没有开始，可复制下方文件内容。', COPY_EXPORT:'复制内容' });
-      Object.assign(LOCAL_TRANSLATIONS.en.UI, { TAGS:'Default tags', STAT_WEEK_HOURS:'This week', STAT_TODAY_HOURS:'Today', STAT_EARLY:'Early classes', STAT_LATE:'Evening classes', STAT_PROGRESS:'Semester progress', STAT_FREE:'Longest free gap', STAT_BUSY:'Busiest two hours' });
-      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { TAGS:'默认标签', STAT_WEEK_HOURS:'本周上课时长', STAT_TODAY_HOURS:'今日上课时长', STAT_EARLY:'早八次数', STAT_LATE:'晚课次数', STAT_PROGRESS:'学期进度', STAT_FREE:'本周最长空档', STAT_BUSY:'本周最忙两小时' });
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { TAGS:'Default tags', STATS_VISIBILITY:'Show statistics', STAT_WEEK_HOURS:'This week', STAT_TODAY_HOURS:'Today', STAT_EARLY:'Early classes', STAT_LATE:'Evening classes', STAT_PROGRESS:'Semester progress', STAT_FREE:'Longest free gap', STAT_BUSY:'Busiest two hours' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { TAGS:'默认标签', STATS_VISIBILITY:'显示统计项', STAT_WEEK_HOURS:'本周上课时长', STAT_TODAY_HOURS:'今日上课时长', STAT_EARLY:'早八次数', STAT_LATE:'晚课次数', STAT_PROGRESS:'学期进度', STAT_FREE:'本周最长空档', STAT_BUSY:'本周最忙两小时' });
       const lookup = (object, key) => key.split('.').reduce((value, part) => value?.[part], object);
       const interpolate = (text, params = {}) => text.replace(/\{\{(\w+)\}\}/g, (match, key) => key in params ? String(params[key]) : match);
       const tr = async (key, params) => { if (settings.language === 'auto' && typeof PluginAPI.translate === 'function') { const translated = await PluginAPI.translate(key, params); if (translated && translated !== key) return translated; } const language = settings.language === 'auto' ? (/^zh/i.test(PluginAPI.cfg?.lang?.code || navigator.language) ? 'zh' : 'en') : settings.language; return interpolate(lookup(LOCAL_TRANSLATIONS[language], key) || lookup(LOCAL_TRANSLATIONS.en, key) || key, params); };
@@ -274,7 +281,7 @@
         }
         displayMode = settings.displayMode === 'list' ? 'list' : 'timeline';
         settings.courseSort = settings.courseSort === 'name' ? 'name' : 'time';
-        settings.mergeNames = settings.mergeNames === true;
+        settings.hiddenStats = Array.isArray(settings.hiddenStats) ? settings.hiddenStats.filter((key) => STAT_KEYS.includes(key)) : [];
         settings.timeLabels = settings.timeLabels === 'each' ? 'each' : 'shared';
         if (!['theme', 'blue', 'green', 'orange', 'purple', 'custom'].includes(settings.accent)) settings.accent = 'blue';
         try { projects = typeof PluginAPI.getAllProjects === 'function' ? await PluginAPI.getAllProjects() : []; } catch (error) { console.error(error); projects = []; }
@@ -332,7 +339,19 @@
         if (exception?.cancelled) return null;
         return exception ? { ...course, weekday: exception.weekday || course.weekday, startTime: exception.startTime || course.startTime, endTime: exception.endTime || course.endTime, location: exception.location || course.location, teacher: exception.teacher || course.teacher, exception: true } : course;
       }
-      const coursesForWeek = (week) => state.courses.map((course) => courseForWeek(course, week)).filter(Boolean);
+      const courseNameKey = (course) => String(course.name || '').normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+      function resolvedCoursesForWeek(courses, week) {
+        const resolved = courses.map((course) => courseForWeek(course, week)).filter(Boolean);
+        const retained = [];
+        const duration = (course) => minutesOfDay(course.endTime) - minutesOfDay(course.startTime);
+        for (const course of [...resolved].sort((a, b) => duration(b) - duration(a))) {
+          if (retained.some((other) => courseNameKey(course) && courseNameKey(course) === courseNameKey(other) && Number(course.weekday) === Number(other.weekday) && minutesOfDay(course.startTime) < minutesOfDay(other.endTime) && minutesOfDay(other.startTime) < minutesOfDay(course.endTime))) continue;
+          retained.push(course);
+        }
+        const ids = new Set(retained.map((course) => course.id));
+        return resolved.filter((course) => ids.has(course.id));
+      }
+      const coursesForWeek = (week) => resolvedCoursesForWeek(state.courses, week);
       function taskCourse(task) {
         const notes = String(task.notes || '');
         const explicitId = notes.match(/Course ID:\s*([^\s,]+)/i)?.[1];
@@ -351,7 +370,7 @@
       const openTasksForCourse = (course) => tasksForCourse(course).filter((task) => !task.isDone);
       async function refreshTasks() { try { spTasks = typeof PluginAPI.getTasks === 'function' ? await PluginAPI.getTasks() : []; } catch (error) { console.error(error); } }
       function conflictIds(courses, week) {
-        const resolved = courses.map((course) => courseForWeek(course, week)).filter(Boolean);
+        const resolved = resolvedCoursesForWeek(courses, week);
         const conflicts = new Set();
         for (let left = 0; left < resolved.length; left++) for (let right = left + 1; right < resolved.length; right++) {
           const a = resolved[left], b = resolved[right];
@@ -359,14 +378,14 @@
         }
         return conflicts;
       }
-      const courseNameKey = (course) => String(course.name || '').trim().toLocaleLowerCase();
       function courseGroups(courses = state.courses) {
-        if (!settings.mergeNames) return courses.map((course) => ({ key: course.id, name: course.name, courses: [course], representative: course }));
         const groups = new Map();
         courses.forEach((course) => {
           const key = courseNameKey(course) || course.id;
           if (!groups.has(key)) groups.set(key, { key, name: course.name, courses: [], representative: course });
           groups.get(key).courses.push(course);
+          const current = groups.get(key).representative;
+          if (minutesOfDay(course.endTime) - minutesOfDay(course.startTime) > minutesOfDay(current.endTime) - minutesOfDay(current.startTime)) groups.get(key).representative = course;
         });
         return [...groups.values()];
       }
@@ -417,7 +436,7 @@
         const activeWeek = week && week >= 1 && week <= state.semester.weeks ? week : null;
         const today = activeWeek ? coursesForWeek(activeWeek).filter((course) => Number(course.weekday) === weekday).sort((a, b) => a.startTime.localeCompare(b.startTime)) : [];
         const current = today.find((course) => minutesOfDay(course.startTime) <= currentMinutes && currentMinutes < minutesOfDay(course.endTime)) || null;
-        const next = state.courses.map((course) => nextOccurrence(course, now)).filter(Boolean).sort((a, b) => a.start - b.start)[0] || null;
+        const next = Array.from({ length: state.semester.weeks }, (_, index) => coursesForWeek(index + 1).map((course) => occurrenceFor(course, index + 1))).flat().filter((item) => item && item.start > now).sort((a, b) => a.start - b.start)[0] || null;
         return { weekday, week: activeWeek, current, next, currentMinutes };
       }
 
@@ -443,7 +462,7 @@
         const gap = stats.freeGap ? `${await tr(`DAY.${stats.freeGap.day}`)} ${clockTime(stats.freeGap.from)}–${clockTime(stats.freeGap.to)}` : '—';
         const busy = stats.busySlot ? `${await tr(`DAY.${stats.busySlot.day}`)} ${clockTime(stats.busySlot.from)}–${clockTime(stats.busySlot.to)}` : '—';
         const items = [['UI.STAT_WEEK_HOURS', `${(stats.totalMinutes / 60).toFixed(1)} h`], ['UI.STAT_TODAY_HOURS', `${(stats.todayMinutes / 60).toFixed(1)} h`], ['UI.STAT_EARLY', stats.earlyCount], ['UI.STAT_LATE', stats.lateCount], ['UI.STAT_PROGRESS', `${stats.progress}%`], ['UI.STAT_FREE', gap], ['UI.STAT_BUSY', busy]];
-        return (await Promise.all(items.map(async ([key, value]) => `<div class="stat"><div class="muted">${esc(await tr(key))}</div><strong>${esc(value)}</strong></div>`))).join('');
+        return (await Promise.all(items.filter(([key]) => !settings.hiddenStats.includes(key)).map(async ([key, value]) => `<div class="stat"><div class="muted">${esc(await tr(key))}</div><strong>${esc(value)}</strong></div>`))).join('');
       }
 
       async function renderStatus() {
@@ -561,16 +580,19 @@
           $('courses').innerHTML = `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`;
           return;
         }
+        const visibleSectionIds = new Set();
+        for (let week = 1; week <= state.semester.weeks; week++) for (const course of coursesForWeek(week)) visibleSectionIds.add(course.id);
         $('courses').innerHTML = (await Promise.all(sortedCourseGroups().map(async (group) => {
           const course = group.representative;
-          const details = await Promise.all(group.courses.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`));
-          const tasks = openTasksForCourse(course);
+          const sections = group.courses.filter((entry) => visibleSectionIds.has(entry.id));
+          const details = await Promise.all(sections.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`));
+          const tasks = [...new Map(group.courses.flatMap(openTasksForCourse).map((task) => [task.id, task])).values()];
           const synced = group.courses.some((entry) => entry.taskId);
           return `<article class="course" data-course-group="${esc(group.key)}">
             <div class="course-head"><strong>${esc(group.name)}</strong><span class="badge">${tasks.length} ${esc(await tr('UI.OPEN_TASKS'))}</span><span class="badge">${synced ? esc(await tr('UI.SYNCED_STATUS')) : esc(await tr('UI.NOT_SYNCED'))}</span></div>
             <div class="course-bottom">
-              <div class="course-description">${group.courses.length > 1 ? `<div class="muted">${group.courses.length} sections</div>` : ''}<div class="muted">${esc(details.join(' / '))}</div>${tasks.length ? `<ul class="task-list">${tasks.slice(0,5).map((task) => `<li>${esc(task.title)}</li>`).join('')}</ul>` : ''}${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">${esc(await tr('UI.OPEN_NOTES'))}</a>` : ''}</div>
-              <details class="course-actions"${isMobile() ? '' : ' open'}><summary class="plain">${esc(await tr('UI.ACTIONS'))}</summary><div class="actions"><button class="plain" data-action="assignment" data-group="${esc(group.key)}">${esc(await tr('UI.ADD_TASK'))}</button><button class="plain" data-action="event" data-id="${esc(course.id)}">${esc(await tr('UI.ADD_EVENT'))}</button><button class="plain" data-action="exception" data-id="${esc(course.id)}">${esc(await tr('UI.EXCEPTION'))}</button><button class="plain" data-action="sync" data-group="${esc(group.key)}">${esc(await tr('UI.SYNC'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><button class="plain" data-action="delete" data-group="${esc(group.key)}">${esc(await tr('UI.DELETE'))}</button></div></details>
+              <div class="course-description">${sections.length > 1 ? `<div class="muted">${sections.length} sections</div>` : ''}<div class="muted">${esc(details.join(' / '))}</div>${tasks.length ? `<ul class="task-list">${tasks.slice(0,5).map((task) => `<li>${esc(task.title)}</li>`).join('')}</ul>` : ''}${course.note ? `<p>${esc(course.note)}</p>` : ''}${course.obsidianLink ? `<a href="${esc(course.obsidianLink)}">${esc(await tr('UI.OPEN_NOTES'))}</a>` : ''}</div>
+              <div class="course-actions"><button class="plain" data-action="assignment" data-group="${esc(group.key)}">${esc(await tr('UI.ADD_TASK'))}</button><button class="plain" data-action="edit" data-id="${esc(course.id)}">${esc(await tr('UI.EDIT'))}</button><details class="course-more"><summary class="plain">${esc(await tr('UI.MORE'))}</summary><div class="course-more-menu"><button class="plain" data-action="event" data-id="${esc(course.id)}">${esc(await tr('UI.ADD_EVENT'))}</button><button class="plain" data-action="exception" data-id="${esc(course.id)}">${esc(await tr('UI.EXCEPTION'))}</button><button class="plain" data-action="sync" data-group="${esc(group.key)}">${esc(await tr('UI.SYNC'))}</button><button class="plain" data-action="delete" data-group="${esc(group.key)}">${esc(await tr('UI.DELETE'))}</button></div></details></div>
             </div>
           </article>`;
         }))).join('');
@@ -652,7 +674,7 @@
       }
 
       async function syncCourses(courses) {
-        const groups = settings.mergeNames ? courseGroups(courses) : courses.map((course) => ({ key: course.id, courses: [course], representative: course }));
+        const groups = courseGroups(courses);
         for (const group of groups) await syncCourseGroup(group);
         await save(); await refreshTasks(); await render();
         PluginAPI.showSnack({ msg: await tr('UI.SYNCED'), type: 'SUCCESS' });
@@ -666,20 +688,20 @@
       $('mobile-sync').onclick = () => { $('mobile-more-dialog').close(); syncCourses(state.courses); };
       $('mobile-help').onclick = () => { $('mobile-more-dialog').close(); $('help-dialog').showModal(); };
       $('mobile-settings').onclick = () => { $('mobile-more-dialog').close(); $('settings').click(); };
-      $('settings').onclick = () => {
+      $('settings').onclick = async () => {
         $('settings-density').value = settings.density;
         $('settings-language').value = settings.language;
         $('settings-accent').value = settings.accent;
         $('settings-custom-color').value = settings.customColor;
         $('settings-weekends').checked = settings.showWeekends;
-        $('settings-merge-names').checked = settings.mergeNames;
         $('settings-time-labels').value = settings.timeLabels;
+        $('settings-stat-options').innerHTML = (await Promise.all(STAT_KEYS.map(async (key) => `<label><input type="checkbox" data-stat-key="${key}" ${settings.hiddenStats.includes(key) ? '' : 'checked'} />${esc(await tr(key))}</label>`))).join('');
         $('settings-dialog').showModal();
       };
       $('settings-cancel').onclick = () => $('settings-dialog').close();
       $('settings-form').onsubmit = async (event) => {
         event.preventDefault();
-        settings = { ...settings, density: $('settings-density').value, language: $('settings-language').value, accent: $('settings-accent').value, customColor: $('settings-custom-color').value, showWeekends: $('settings-weekends').checked, mergeNames: $('settings-merge-names').checked, timeLabels: $('settings-time-labels').value };
+        settings = { ...settings, density: $('settings-density').value, language: $('settings-language').value, accent: $('settings-accent').value, customColor: $('settings-custom-color').value, showWeekends: $('settings-weekends').checked, timeLabels: $('settings-time-labels').value, hiddenStats: [...$('settings-stat-options').querySelectorAll('[data-stat-key]:not(:checked)')].map((input) => input.dataset.statKey) };
         await saveSettings();
         applySettings();
         await applyTranslations();
@@ -1340,6 +1362,7 @@
         if (!state.semester.startDate) return;
         const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Super Productivity//Study Courses//EN'];
         for (const course of state.courses) for (let week = course.startWeek; week <= course.endWeek; week++) {
+          if (!coursesForWeek(week).some((entry) => entry.id === course.id)) continue;
           const occurrence = occurrenceFor(course, week); if (!occurrence) continue; const resolved = occurrence.course;
           lines.push('BEGIN:VEVENT', `UID:${course.id}-${week}@super-productivity`, `DTSTART:${icsDate(occurrence.start)}`, `DTEND:${icsDate(occurrence.end)}`, `SUMMARY:${resolved.name.replace(/[,;]/g, ' ')}`, `LOCATION:${String(resolved.location || '').replace(/[,;]/g, ' ')}`, `DESCRIPTION:${String(resolved.teacher || '').replace(/[\r\n,;]/g, ' ')}`, 'END:VEVENT');
         }

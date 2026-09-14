@@ -68,6 +68,16 @@ context.grid = grid;
 assert.ok(evaluate('rowsToCourses(parseCsv(grid)).length') >= 1);
 
 evaluate("state.semester = { name: 'Test', startDate: '2026-09-07', weeks: 16 }");
+evaluate("state.courses = [{ id:'short', name:'Same course', weekday:1, startTime:'09:00', endTime:'09:45', startWeek:1, endWeek:16, pattern:'every', customWeeks:[] }, { id:'long', name:'Same course', weekday:1, startTime:'09:00', endTime:'10:30', startWeek:1, endWeek:16, pattern:'every', customWeeks:[] }]");
+assert.deepEqual(Array.from(evaluate('coursesForWeek(1).map((course) => course.id)')), ['long']);
+assert.equal(evaluate('conflictIds(state.courses, 1).size'), 0);
+assert.equal(evaluate('courseGroups()[0].representative.id'), 'long');
+evaluate("state.courses.push({ id:'other', name:'Different course', weekday:1, startTime:'10:00', endTime:'11:00', startWeek:1, endWeek:16, pattern:'every', customWeeks:[] })");
+assert.deepEqual(Array.from(evaluate('conflictIds(state.courses, 1)')).sort(), ['long', 'other']);
+evaluate("settings.hiddenStats = ['UI.STAT_EARLY']");
+assert.ok(!(await evaluate('statisticsHtml(1)')).includes('Early classes'));
+assert.ok((await evaluate('statisticsHtml(1)')).includes('This week'));
+evaluate('settings.hiddenStats = []');
 evaluate("state.courses = [{ id:'a', name:'A', weekday:1, startTime:'09:00', endTime:'10:00', startWeek:1, endWeek:16, pattern:'every', customWeeks:[], color:'#3f51b5' }, { id:'b', name:'B', weekday:1, startTime:'09:30', endTime:'10:30', startWeek:1, endWeek:16, pattern:'every', customWeeks:[], color:'#3f51b5' }]");
 assert.equal(evaluate('conflictIds(state.courses, 1).size'), 2);
 assert.equal(evaluate('weekStatistics(1).totalMinutes'), 120);

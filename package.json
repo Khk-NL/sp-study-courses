@@ -1,6 +1,6 @@
 {
   "name": "@scsldr/sp-study-courses",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "private": false,
   "scripts": {
     "build": "node scripts/build.mjs"

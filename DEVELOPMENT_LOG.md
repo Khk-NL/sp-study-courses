@@ -115,3 +115,10 @@
 - Added a build step that minifies inline CSS, JavaScript, and HTML into `dist/index.html` while keeping the readable root source. The generated file is 99,690 bytes and the build fails if it reaches 100,000 bytes.
 - Updated the release workflow to package only built files and inspect the ZIP entry size before publishing. Updated both packaging examples in the README.
 - Source parser and browser tests pass; the built file also passes desktop and narrow-screen startup checks. Android installation still needs device verification.
+
+### v2.5.0 course overlap and display controls
+
+- Resolve same-name, same-day overlapping course occurrences per teaching week by retaining the longest time span. Different-name overlaps still show as real conflicts. Source records are preserved to avoid losing task and exception links.
+- Group same-name course sections in the lower list; show only visible sections, aggregate linked tasks, and use two direct actions plus a More menu.
+- Add independent show/hide switches for all seven statistics in synced UI settings. The chosen visibility applies to timetable and Today.
+- Added overlap and statistics regression checks. The packaged HTML remains below the 100,000-byte installation limit.
