@@ -137,10 +137,14 @@ course-import-template.csv
 Example packaging command:
 
 ```powershell
-Compress-Archive `
-  -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv `
-  -DestinationPath sp-study-courses.zip
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run build
+Push-Location dist
+Compress-Archive -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv -DestinationPath ../sp-study-courses.zip
+Pop-Location
 ```
+
+Package the generated `dist/index.html`, not the readable source at the repository root. The build fails if the generated file reaches Super Productivity's 100 KB iframe limit.
 
 ---
 
@@ -279,10 +283,14 @@ course-import-template.csv
 打包示例：
 
 ```powershell
-Compress-Archive `
-  -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv `
-  -DestinationPath sp-study-courses.zip
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run build
+Push-Location dist
+Compress-Archive -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv -DestinationPath ../sp-study-courses.zip
+Pop-Location
 ```
+
+请打包生成的 `dist/index.html`，不要直接打包仓库根目录的可读源码。构建会检查 100 KB 限制，超限时直接报错。
 
 ---
 

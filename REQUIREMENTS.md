@@ -193,6 +193,7 @@ Parser fixtures must cover:
 - Group changes into independently usable releases.
 - Update manifest and package versions together.
 - Run syntax, JSON, parser, state-migration, and focused UI smoke checks before each push.
+- Release ZIPs must contain the built `dist/index.html`, and CI must reject a packaged iframe file of 100,000 bytes or more.
 - Push normal fast-forward commits to `main`; never overwrite remote history with force push.
 
 Planned release groups:

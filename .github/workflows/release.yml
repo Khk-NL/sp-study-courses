@@ -12,9 +12,33 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install build tools
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Build and check iframe size
+        run: pnpm run build
       - name: Package flat Super Productivity plugin
         shell: pwsh
-        run: Compress-Archive -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv -DestinationPath sp-study-courses.zip
+        run: |
+          Push-Location dist
+          try {
+            Compress-Archive -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv -DestinationPath ../sp-study-courses.zip
+          } finally {
+            Pop-Location
+          }
+          $archive = [System.IO.Compression.ZipFile]::OpenRead('sp-study-courses.zip')
+          try {
+            $entry = $archive.GetEntry('index.html')
+            if (-not $entry -or $entry.Length -ge 100000) { throw 'Packaged index.html exceeds the 100 KB plugin limit.' }
+          } finally {
+            $archive.Dispose()
+          }
       - name: Create GitHub release
         shell: pwsh
         env:

@@ -106,3 +106,12 @@
 - Synced course plans and assignments now include the SP `课程` tag in addition to each course's selected default tags.
 - Reuse an existing tag and create it through `PluginAPI.addTag` only when needed; if tag APIs are unavailable, keep task creation usable with existing tags.
 - Declared the new `addTag` permission. No core, Electron, or Node-only capability is required by the plugin.
+
+## 2026-09-14
+
+### v2.4.3 install-size repair
+
+- A user installation exposed a missed release constraint: v2.4.2 packaged the 141,601-byte source `index.html`, exceeding SP's 100,000-byte iframe-file limit. ZIP compression does not change the contained file's size.
+- Added a build step that minifies inline CSS, JavaScript, and HTML into `dist/index.html` while keeping the readable root source. The generated file is 99,690 bytes and the build fails if it reaches 100,000 bytes.
+- Updated the release workflow to package only built files and inspect the ZIP entry size before publishing. Updated both packaging examples in the README.
+- Source parser and browser tests pass; the built file also passes desktop and narrow-screen startup checks. Android installation still needs device verification.
