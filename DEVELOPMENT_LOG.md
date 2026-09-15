@@ -138,3 +138,10 @@
 - Export now tries the browser File System Access save picker on non-mobile platforms when `showSaveFilePicker` is available, allowing the user to choose a filename and folder.
 - If the picker API is unavailable or rejected by the runtime/iframe, export falls back to `PluginAPI.downloadFile`, then the existing Blob or copy flow. Canceling the picker does not start an unwanted fallback download.
 - Added a save-picker smoke check. The built iframe remains below the 100,000-byte plugin limit.
+
+### v2.6.1 dialog and empty-export repair
+
+- Give every plugin dialog an explicit white background, dark text, light border, and dimmed backdrop instead of relying on a possibly missing host background variable.
+- Write save-picker exports as a Blob, close the stream, then verify the selected file has non-zero size. A zero-byte or failed write falls back to the official SP download path; explicit user cancellation remains cancellation.
+- Added tests for successful content writes, zero-byte fallback, and the packaged dialog background.
+- Condensed repetitive mobile/FAQ help prose without removing any core feature. The packaged iframe is 98,618 bytes, leaving more headroom below the 100,000-byte limit.

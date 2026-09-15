@@ -22,6 +22,7 @@ let tagCreates = 0;
 let addedTask = null;
 let updatedTask = null;
 let savedFile = null;
+let hostDownload = null;
 const context = {
   console, Date, TextDecoder, Blob, URL,
   crypto: { randomUUID: () => `test-${++nextId}` },
@@ -46,7 +47,7 @@ const context = {
     addTag: async ({ title }) => { tagCreates++; mockTags.push({ id: 'course-tag', title }); return 'course-tag'; },
     addTask: async (task) => { addedTask = task; return 'sp-course-task'; },
     updateTask: async (id, task) => { updatedTask = { id, ...task }; },
-    translate: async (key) => key, showSnack() {},
+    downloadFile: async (filename, data) => { hostDownload = { filename, data }; }, translate: async (key) => key, showSnack() {},
   },
 };
 runInNewContext(source, context, { filename: 'index.inline.js' });
@@ -68,9 +69,13 @@ assert.equal(evaluate("localText('UI.NONE')"), '无');
 evaluate("settings.language = 'en'; PluginAPI.cfg.lang.code = 'en'");
 assert.equal(evaluate("localText('UI.EVENT_EXAM')"), 'Exam');
 evaluate('pendingImport = null');
-context.window.showSaveFilePicker = async ({ suggestedName }) => ({ createWritable: async () => ({ write: async (data) => { savedFile = { suggestedName, data }; }, close: async () => {} }) });
+context.window.showSaveFilePicker = async ({ suggestedName }) => ({ createWritable: async () => ({ write: async (data) => { savedFile = { suggestedName, data }; }, close: async () => {} }), getFile: async () => ({ size: savedFile?.data.size || 0 }) });
 await evaluate("sendDownload('timetable.csv', 'course data', 'DOWNLOAD_TEXT')");
-assert.deepEqual(savedFile, { suggestedName: 'timetable.csv', data: 'course data' });
+assert.equal(savedFile.suggestedName, 'timetable.csv');
+assert.equal(await savedFile.data.text(), 'course data');
+context.window.showSaveFilePicker = async () => ({ createWritable: async () => ({ write: async () => {}, close: async () => {} }), getFile: async () => ({ size: 0 }) });
+await evaluate("sendDownload('fallback.json', '{\"ok\":true}', 'DOWNLOAD_TEXT')");
+assert.deepEqual(hostDownload, { filename: 'fallback.json', data: '{"ok":true}' });
 delete context.window.showSaveFilePicker;
 
 const structured = readFileSync(new URL('./fixtures/structured.csv', import.meta.url), 'utf8').trimEnd();
