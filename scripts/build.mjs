@@ -13,10 +13,14 @@ const minifiedScript = await minifyScript(script[1], { compress: { passes: 3, to
 const withMinifiedAssets = source
   .replace(css[0], `<style>${minifiedCss.code}</style>`)
   .replace(script[0], `<script>${minifiedScript.code}</script>`)
-  .replace(/(<([a-z][\w-]*)\b[^>]*\bdata-i18n="[^"]+"[^>]*>)[^<]*(<\/\2>)/g, '$1$3');
+  .replace(/(<([a-z][\w-]*)\b[^>]*\bdata-i18n="[^"]+"[^>]*>)[^<]*(<\/\2>)/g, '$1$3')
+  .replace(/(data-i18n-(?:aria-label|placeholder)="[^"]+")[^>]*?\s(?:aria-label|placeholder)="[^"]*"/g, '$1');
 const output = await minify(withMinifiedAssets, {
   collapseWhitespace: true,
+  collapseBooleanAttributes: true,
   removeComments: true,
+  removeRedundantAttributes: true,
+  useShortDoctype: true,
   removeAttributeQuotes: true,
   minifyCSS: false,
   minifyJS: false,

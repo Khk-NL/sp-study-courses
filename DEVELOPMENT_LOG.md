@@ -131,3 +131,10 @@
 - Use the selected or SP-following language for dynamically rendered event badges and import preview, including the language-change hook.
 - Strip redundant fallback text only from built HTML elements with `data-i18n`; readable source text remains. Packaged iframe still stays below 100,000 bytes.
 - Added Chinese, English, and automatic-language regression checks.
+
+### v2.6.0 export save-location picker
+
+- Verified the current upstream Plugin API: `downloadFile(filename, data)` has no directory or save-dialog option. On Android, the host writes to cache and opens the system share sheet; its fallback writes to Documents. Desktop/web uses a normal browser download, except the Snap host which owns its native save dialog.
+- Export now tries the browser File System Access save picker on non-mobile platforms when `showSaveFilePicker` is available, allowing the user to choose a filename and folder.
+- If the picker API is unavailable or rejected by the runtime/iframe, export falls back to `PluginAPI.downloadFile`, then the existing Blob or copy flow. Canceling the picker does not start an unwanted fallback download.
+- Added a save-picker smoke check. The built iframe remains below the 100,000-byte plugin limit.

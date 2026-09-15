@@ -217,6 +217,7 @@ This matrix separates the documented SP interface from actual Android verificati
 | XLSX / DOCX | Inline ZIP/XML parser; no CDN, Electron, or Node.js runtime dependency. If `DecompressionStream` is unavailable, offer CSV/HTML/paste. | Headless Edge archive tests pass; Android WebView needs device test. |
 | Clipboard | Paste event reads HTML first, plain text second; textarea is always visible. | Browser logic inspected; Android clipboard HTML needs device test. |
 | ICS / CSV / JSON export | `downloadFile` if injected, otherwise Blob download; mobile also shows copyable contents when using fallback. | Browser path inspected; Android download handoff needs device test. |
+| Save location | On non-mobile runtimes, use `showSaveFilePicker` when available; otherwise use the host download behavior. The official Plugin API does not accept a target directory. | Picker write path covered by smoke test; iframe/runtime availability varies by platform. |
 | Obsidian URL | Open through a user-tapped `obsidian://` link, with a copyable-link dialog. Rejects other schemes at click time. | External-app dispatch needs device test. |
 | SP task/project API | Feature-detect `getTasks`, `getAllProjects`, `addTask`, `updateTask`; manifest requests permissions. | API documented and local mocks pass; Android host behavior needs device test. |
 | Dialogs and hooks | HTML dialogs become full-screen on narrow screens; hook registration is optional. | Narrow-screen Edge test passes; Android WebView needs device test. |

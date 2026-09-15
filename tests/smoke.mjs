@@ -21,6 +21,7 @@ const mockTags = [];
 let tagCreates = 0;
 let addedTask = null;
 let updatedTask = null;
+let savedFile = null;
 const context = {
   console, Date, TextDecoder, Blob, URL,
   crypto: { randomUUID: () => `test-${++nextId}` },
@@ -67,6 +68,10 @@ assert.equal(evaluate("localText('UI.NONE')"), '无');
 evaluate("settings.language = 'en'; PluginAPI.cfg.lang.code = 'en'");
 assert.equal(evaluate("localText('UI.EVENT_EXAM')"), 'Exam');
 evaluate('pendingImport = null');
+context.window.showSaveFilePicker = async ({ suggestedName }) => ({ createWritable: async () => ({ write: async (data) => { savedFile = { suggestedName, data }; }, close: async () => {} }) });
+await evaluate("sendDownload('timetable.csv', 'course data', 'DOWNLOAD_TEXT')");
+assert.deepEqual(savedFile, { suggestedName: 'timetable.csv', data: 'course data' });
+delete context.window.showSaveFilePicker;
 
 const structured = readFileSync(new URL('./fixtures/structured.csv', import.meta.url), 'utf8').trimEnd();
 context.structured = structured;
