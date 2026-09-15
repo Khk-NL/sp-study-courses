@@ -1355,10 +1355,10 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
       function pad(value) { return String(value).padStart(2, '0'); }
       function icsDate(date) { return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`; }
       async function sendDownload(filename, data, type) {
-        if (!isMobile() && typeof window.showSaveFilePicker === 'function') try { const file = await window.showSaveFilePicker({ suggestedName: filename }); const writer = await file.createWritable(); await writer.write(new Blob([data])); await writer.close(); if ((await file.getFile()).size) return; } catch (error) { if (error?.name === 'AbortError') return; console.error(error); }
         try { if (typeof PluginAPI.downloadFile === 'function') { await PluginAPI.downloadFile(filename, data); return; } } catch (error) { console.error(error); }
+        if (window.parent !== window) { window.parent.postMessage({ source: 'sp-study-courses', type, filename, data }, '*'); return; }
         try { const blob = new Blob([data], { type: filename.endsWith('.ics') ? 'text/calendar' : 'text/plain' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
-        catch (error) { console.error(error); window.parent.postMessage({ source: 'sp-study-courses', type, filename, data }, '*'); }
+        catch (error) { console.error(error); }
         if (isMobile()) { $('export-copy-data').value = data; $('export-copy-dialog').showModal(); }
       }
       $('export-copy-button').onclick = async () => { const input = $('export-copy-data'); try { if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable'); await navigator.clipboard.writeText(input.value); PluginAPI.showSnack?.({ msg: await tr('UI.COPIED'), type: 'SUCCESS' }); } catch (error) { input.focus(); input.select(); PluginAPI.showSnack?.({ msg: await tr('UI.COPY_MANUAL'), type: 'INFO' }); } };

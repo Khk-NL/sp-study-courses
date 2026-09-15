@@ -145,3 +145,10 @@
 - Write save-picker exports as a Blob, close the stream, then verify the selected file has non-zero size. A zero-byte or failed write falls back to the official SP download path; explicit user cancellation remains cancellation.
 - Added tests for successful content writes, zero-byte fallback, and the packaged dialog background.
 - Condensed repetitive mobile/FAQ help prose without removing any core feature. The packaged iframe is 98,618 bytes, leaving more headroom below the 100,000-byte limit.
+
+### v2.6.2 host-bridge export repair
+
+- Confirmed the actual cause of zero-byte exports in upstream SP: `downloadFile` is a host-side API and is not included in the iframe API allow-list, while the iframe sandbox does not grant browser downloads.
+- Removed the incompatible save picker. When the iframe cannot call `downloadFile` directly, it now sends the complete generated payload to the bundled host-side `plugin.js`, which validates it and calls the official download API.
+- Keep ordinary Blob download only for standalone, non-iframe use. Added checks for CSV headers and rows, JSON structure, iframe message contents, and the host bridge receiving identical non-empty data.
+- The packaged iframe is 98,360 bytes, below the 100,000-byte limit.

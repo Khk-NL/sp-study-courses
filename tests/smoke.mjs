@@ -21,8 +21,8 @@ const mockTags = [];
 let tagCreates = 0;
 let addedTask = null;
 let updatedTask = null;
-let savedFile = null;
 let hostDownload = null;
+let postedDownload = null;
 const context = {
   console, Date, TextDecoder, Blob, URL,
   crypto: { randomUUID: () => `test-${++nextId}` },
@@ -38,7 +38,7 @@ const context = {
     querySelectorAll: () => [],
     createElement: () => ({ textContent: '', get innerHTML() { return this.textContent; } }),
   },
-  window: { parent: { postMessage() {} } },
+  window: { parent: { postMessage: (data) => { postedDownload = data; } } },
   PluginAPI: {
     cfg: { platform: 'desktop', lang: { code: 'en' } },
     loadSyncedData: async (key) => persisted.get(key) || null,
@@ -69,14 +69,18 @@ assert.equal(evaluate("localText('UI.NONE')"), '无');
 evaluate("settings.language = 'en'; PluginAPI.cfg.lang.code = 'en'");
 assert.equal(evaluate("localText('UI.EVENT_EXAM')"), 'Exam');
 evaluate('pendingImport = null');
-context.window.showSaveFilePicker = async ({ suggestedName }) => ({ createWritable: async () => ({ write: async (data) => { savedFile = { suggestedName, data }; }, close: async () => {} }), getFile: async () => ({ size: savedFile?.data.size || 0 }) });
 await evaluate("sendDownload('timetable.csv', 'course data', 'DOWNLOAD_TEXT')");
-assert.equal(savedFile.suggestedName, 'timetable.csv');
-assert.equal(await savedFile.data.text(), 'course data');
-context.window.showSaveFilePicker = async () => ({ createWritable: async () => ({ write: async () => {}, close: async () => {} }), getFile: async () => ({ size: 0 }) });
-await evaluate("sendDownload('fallback.json', '{\"ok\":true}', 'DOWNLOAD_TEXT')");
-assert.deepEqual(hostDownload, { filename: 'fallback.json', data: '{"ok":true}' });
-delete context.window.showSaveFilePicker;
+assert.deepEqual(hostDownload, { filename: 'timetable.csv', data: 'course data' });
+delete context.PluginAPI.downloadFile;
+await evaluate("sendDownload('bridge.json', '{\"ok\":true}', 'DOWNLOAD_TEXT')");
+assert.equal(postedDownload.filename, 'bridge.json');
+assert.equal(postedDownload.data, '{"ok":true}');
+let messageHandler;
+let bridgedHostDownload;
+const hostWindow = { addEventListener: (_, handler) => { messageHandler = handler; }, removeEventListener() {} };
+runInNewContext(readFileSync(new URL('../plugin.js', import.meta.url), 'utf8'), { window: hostWindow, PluginAPI: { downloadFile: (filename, data) => { bridgedHostDownload = { filename, data }; } } });
+messageHandler({ data: postedDownload });
+assert.deepEqual(bridgedHostDownload, { filename: 'bridge.json', data: '{"ok":true}' });
 
 const structured = readFileSync(new URL('./fixtures/structured.csv', import.meta.url), 'utf8').trimEnd();
 context.structured = structured;
@@ -99,6 +103,9 @@ assert.ok(!(await evaluate('statisticsHtml(1)')).includes('Early classes'));
 assert.ok((await evaluate('statisticsHtml(1)')).includes('This week'));
 evaluate('settings.hiddenStats = []');
 evaluate("state.courses = [{ id:'a', name:'A', weekday:1, startTime:'09:00', endTime:'10:00', startWeek:1, endWeek:16, pattern:'every', customWeeks:[], color:'#3f51b5' }, { id:'b', name:'B', weekday:1, startTime:'09:30', endTime:'10:30', startWeek:1, endWeek:16, pattern:'every', customWeeks:[], color:'#3f51b5' }]");
+assert.ok(evaluate("buildCsv().startsWith('name,teacher,location,weekday')"));
+assert.ok(evaluate("buildCsv().includes('\\\"A\\\"')"));
+assert.ok(evaluate("JSON.stringify({ ...state, settings }).includes('\\\"courses\\\"')"));
 assert.equal(evaluate('conflictIds(state.courses, 1).size'), 2);
 assert.equal(evaluate('weekStatistics(1).totalMinutes'), 120);
 evaluate("state.courses[0].taskPrefix = '[A]'; state.courses[0].tagIds = ['tag-one']");
