@@ -152,3 +152,13 @@
 - Removed the incompatible save picker. When the iframe cannot call `downloadFile` directly, it now sends the complete generated payload to the bundled host-side `plugin.js`, which validates it and calls the official download API.
 - Keep ordinary Blob download only for standalone, non-iframe use. Added checks for CSV headers and rows, JSON structure, iframe message contents, and the host bridge receiving identical non-empty data.
 - The packaged iframe is 98,360 bytes, below the 100,000-byte limit.
+
+## 2026-09-19
+
+### v2.6.3 attribute-safe escaping and packaging environment
+
+- Review of the Super Productivity community-plugin PR found that `esc()` serialized through a text node, which escapes `&`, `<`, `>` and U+00A0 but leaves `"` and `'` intact; four interpolations used it inside quoted attributes. `esc()` now also writes `&quot;` and `&#39;`, closing the `href`, `data-course-group`, `data-group`, and `data-course-id` sinks for imported `obsidianLink` values and course names.
+- `safeObsidianUrl()` is applied while rendering the Today and course-list note links, so an unvalidated scheme cannot reach an `href`. The delegated click handler remains a second gate.
+- `plugin.js` compares `event.source` against this plugin's own iframe `contentWindow` values (`iframe[data-plugin-id="study-courses"]`) before downloading. `event.origin` is unusable here: a same-origin `srcdoc` iframe serializes its origin as `null` on packaged `file://` builds while `location.origin` stays `file://`.
+- Added `package.cmd` for local packaging and `.github/workflows/package.yml` for remote packaging. Both build `dist/`, run the smoke tests, and write `sp-study-courses.zip` with `manifest.json` at its root. The dependency-free ZIP writer uses a fixed timestamp, so identical sources produce identical bytes. Tag pushes additionally check the tag against the `manifest.json` version and publish the release.
+- Added smoke checks for attribute escaping, `safeObsidianUrl()`, and rejection of download messages from a foreign window.

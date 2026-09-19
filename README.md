@@ -134,15 +134,15 @@ i18n/
 course-import-template.csv
 ```
 
-Example packaging command:
+One command builds `dist/`, runs the smoke tests and writes the ZIP:
 
-```powershell
-pnpm install --frozen-lockfile --ignore-scripts
-pnpm run build
-Push-Location dist
-Compress-Archive -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv -DestinationPath ../sp-study-courses.zip
-Pop-Location
+```bat
+package.cmd
 ```
+
+The equivalent pnpm scripts are `pnpm test` and `pnpm run package`. The ZIP lands at the repository root as `sp-study-courses.zip` with `manifest.json` at its root, and packaging the same sources twice produces the same bytes.
+
+Pushing a `vX.Y.Z` tag runs the same steps in `.github/workflows/package.yml` and attaches the ZIP to a GitHub release; the tag must match the `manifest.json` version. Every other push and pull request uploads the ZIP as a build artifact.
 
 Package the generated `dist/index.html`, not the readable source at the repository root. The build fails if the generated file reaches Super Productivity's 100 KB iframe limit.
 
@@ -280,15 +280,15 @@ i18n/
 course-import-template.csv
 ```
 
-打包示例：
+一条命令即可完成构建、冒烟测试和打包：
 
-```powershell
-pnpm install --frozen-lockfile --ignore-scripts
-pnpm run build
-Push-Location dist
-Compress-Archive -Path manifest.json,plugin.js,index.html,icon.svg,i18n,course-import-template.csv -DestinationPath ../sp-study-courses.zip
-Pop-Location
+```bat
+package.cmd
 ```
+
+对应的 pnpm 脚本为 `pnpm test` 与 `pnpm run package`。ZIP 输出到仓库根目录的 `sp-study-courses.zip`，`manifest.json` 位于压缩包根目录；同一份源码重复打包得到完全相同的字节。
+
+推送 `vX.Y.Z` 标签后，`.github/workflows/package.yml` 执行相同步骤并把 ZIP 附加到 GitHub Release，标签必须与 `manifest.json` 版本一致；其余 push 与 pull request 会把 ZIP 作为构建产物上传。
 
 请打包生成的 `dist/index.html`，不要直接打包仓库根目录的可读源码。构建会检查 100 KB 限制，超限时直接报错。
 

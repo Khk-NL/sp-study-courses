@@ -36,7 +36,7 @@ const context = {
     addEventListener() {},
     getElementById: element,
     querySelectorAll: () => [],
-    createElement: () => ({ textContent: '', get innerHTML() { return this.textContent; } }),
+    createElement: () => ({ textContent: '', get innerHTML() { return String(this.textContent).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\u00a0/g, '&nbsp;'); } }),
   },
   window: { parent: { postMessage: (data) => { postedDownload = data; } } },
   PluginAPI: {
@@ -53,6 +53,12 @@ const context = {
 runInNewContext(source, context, { filename: 'index.inline.js' });
 const evaluate = (expression) => runInNewContext(expression, context);
 
+context.hostileName = 'A" onmouseover="alert(1)';
+assert.equal(evaluate('esc(hostileName)'), 'A&quot; onmouseover=&quot;alert(1)');
+context.hostileName = "'><img src=x onerror=alert(1)>";
+assert.equal(evaluate('esc(hostileName)'), '&#39;&gt;&lt;img src=x onerror=alert(1)&gt;');
+assert.equal(evaluate("safeObsidianUrl('javascript:alert(1)')"), '');
+assert.equal(evaluate("safeObsidianUrl('obsidian://open?vault=notes')"), 'obsidian://open?vault=notes');
 assert.equal(evaluate("weekdayFromText('Monday')"), 1);
 assert.equal(evaluate("weekdayFromText('月曜日')"), 1);
 assert.equal(evaluate("weekdayFromText('星期五')"), 5);
@@ -77,10 +83,20 @@ assert.equal(postedDownload.filename, 'bridge.json');
 assert.equal(postedDownload.data, '{"ok":true}');
 let messageHandler;
 let bridgedHostDownload;
+const pluginIframe = { contentWindow: {} };
 const hostWindow = { addEventListener: (_, handler) => { messageHandler = handler; }, removeEventListener() {} };
-runInNewContext(readFileSync(new URL('../plugin.js', import.meta.url), 'utf8'), { window: hostWindow, PluginAPI: { downloadFile: (filename, data) => { bridgedHostDownload = { filename, data }; } } });
-messageHandler({ data: postedDownload });
+runInNewContext(readFileSync(new URL('../plugin.js', import.meta.url), 'utf8'), {
+  window: hostWindow,
+  document: { querySelectorAll: (selector) => selector === 'iframe[data-plugin-id="study-courses"]' ? [pluginIframe] : [] },
+  PluginAPI: { downloadFile: (filename, data) => { bridgedHostDownload = { filename, data }; } },
+});
+messageHandler({ data: postedDownload, source: pluginIframe.contentWindow });
 assert.deepEqual(bridgedHostDownload, { filename: 'bridge.json', data: '{"ok":true}' });
+bridgedHostDownload = null;
+messageHandler({ data: postedDownload, source: {} });
+assert.equal(bridgedHostDownload, null, 'a foreign window cannot trigger a download');
+messageHandler({ data: postedDownload });
+assert.equal(bridgedHostDownload, null, 'a message without a source cannot trigger a download');
 
 const structured = readFileSync(new URL('./fixtures/structured.csv', import.meta.url), 'utf8').trimEnd();
 context.structured = structured;

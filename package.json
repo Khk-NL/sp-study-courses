@@ -1,9 +1,12 @@
 {
   "name": "@scsldr/sp-study-courses",
-  "version": "2.6.2",
+  "version": "2.6.3",
+  "packageManager": "pnpm@11.7.0",
   "private": false,
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "test": "node tests/smoke.mjs",
+    "package": "node scripts/package.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.12",
