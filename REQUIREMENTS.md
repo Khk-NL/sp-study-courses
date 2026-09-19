@@ -205,22 +205,24 @@ Planned release groups:
 3. `2.3.x`: complete help center, mobile fallbacks, and responsive/mobile navigation.
 4. `2.4.x`: templates, statistics, Obsidian refinements, fixtures, and maintenance cleanup.
 
-## 14. Mobile compatibility audit (2026-09-13)
+## 14. Mobile compatibility audit
 
-This matrix separates the documented SP interface from actual Android verification. A narrow-screen desktop WebView test is useful evidence for layout, not proof of Android installation or Capacitor file handling.
+Updated 2026-09-19 after the author installed the 2.6.2 ZIP on physical Android and iOS devices. "Author device test" means the author installed the released ZIP on a real phone and exercised that flow; it is not a platform-wide guarantee. Rows without it still rest on the documented SP interface and on headless-Edge WebView checks run at 390x844.
 
 | Capability | Current implementation / fallback | Verification |
 | --- | --- | --- |
-| Plugin install and iframe | Official docs describe ZIP upload and `srcdoc` iframe; no auto-install-by-sync contract was found. Install the ZIP on each device. | Official documentation only; Android installation and iframe loading need device test. |
-| Synced user data | `loadSyncedData` / `persistDataSynced` store semesters, courses, events, exceptions and UI settings. | Local round-trip smoke passes; cross-device delivery needs device test. |
-| File chooser | HTML file input supports CSV/HTML/XLSX/DOCX; web paste remains available. | Browser path tested; Android picker needs device test. |
-| XLSX / DOCX | Inline ZIP/XML parser; no CDN, Electron, or Node.js runtime dependency. If `DecompressionStream` is unavailable, offer CSV/HTML/paste. | Headless Edge archive tests pass; Android WebView needs device test. |
-| Clipboard | Paste event reads HTML first, plain text second; textarea is always visible. | Browser logic inspected; Android clipboard HTML needs device test. |
-| ICS / CSV / JSON export | `downloadFile` if injected, otherwise Blob download; mobile also shows copyable contents when using fallback. | Browser path inspected; Android download handoff needs device test. |
-| Save location | Export data is passed from the iframe to bundled host-side `plugin.js`, then saved through `PluginAPI.downloadFile`. The official API does not accept a target directory. | CSV/JSON content and iframe-to-host payload round trips are covered by smoke tests. |
-| Obsidian URL | Open through a user-tapped `obsidian://` link, with a copyable-link dialog. Rejects other schemes at click time. | External-app dispatch needs device test. |
-| SP task/project API | Feature-detect `getTasks`, `getAllProjects`, `addTask`, `updateTask`; manifest requests permissions. | API documented and local mocks pass; Android host behavior needs device test. |
-| Dialogs and hooks | HTML dialogs become full-screen on narrow screens; hook registration is optional. | Narrow-screen Edge test passes; Android WebView needs device test. |
-| Official discoverability | Upstream suggests a PR to `community-plugins.json`; this is not a secure automatic code-sync mechanism. | Documented upstream; no marketplace submission was made. |
+| Plugin install and iframe | Official docs describe ZIP upload and `srcdoc` iframe; no auto-install-by-sync contract was found. Install the ZIP on each device. | Author device test on Android and iOS: install and iframe loading work. |
+| Synced user data | `loadSyncedData` / `persistDataSynced` store semesters, courses, events, exceptions and UI settings. | Local round-trip smoke passes and the author device test confirms saved data survives normal use; cross-device delivery still depends on the user's SP sync setup. |
+| File chooser | HTML file input supports CSV/HTML/XLSX/DOCX; web paste remains available. | Author device test on Android and iOS: the picker opens and returns a file. |
+| XLSX / DOCX | Inline ZIP/XML parser; no CDN, Electron, or Node.js runtime dependency. If `DecompressionStream` is unavailable, offer CSV/HTML/paste. | Headless Edge archive tests pass; the author device test confirms import on Android and iOS. |
+| Clipboard | Paste event reads HTML first, plain text second; textarea is always visible. | Author device test on Android and iOS; the visible textarea stays as the fallback. |
+| ICS / CSV / JSON export | `downloadFile` if injected, otherwise Blob download; mobile also shows copyable contents when using fallback. | Author device test on Android and iOS: export reaches the share or save flow. |
+| Save location | Export data is passed from the iframe to bundled host-side `plugin.js`, then saved through `PluginAPI.downloadFile`. The official API does not accept a target directory. | CSV/JSON content and iframe-to-host payload round trips are covered by smoke tests; export verified on device. |
+| Obsidian URL | Open through a user-tapped `obsidian://` link, with a copyable-link dialog. Rejects other schemes at click time. | Not covered by the device run; external-app dispatch depends on the Obsidian app installed on the device. |
+| SP task/project API | Feature-detect `getTasks`, `getAllProjects`, `addTask`, `updateTask`; manifest requests permissions. | Local mocks pass; the author device test confirms course task creation and updates. |
+| Host dark theme | Panels, dialogs, inputs and menu surfaces read the injected host variables (`--card-bg`, `--text-color`, `--divider-color`, `--color-warning`, `--color-danger`) with light fallbacks, and `applySettings` maps `--is-dark-theme` onto `color-scheme` so native controls match. | Headless Edge dark-theme check passes on the source and packaged builds; author device test on Android. |
+| Mobile timetable | Phone layout stacks day sections. Since 2.6.3 it lists every weekday that has a class in the selected week, marks today, and shows the empty state when the week is clear, instead of rendering only the current weekday. | Headless Edge 390x844 check seeds a Monday and a Wednesday class and requires both day sections; author device test on Android and iOS. |
+| Dialogs and hooks | HTML dialogs become full-screen on narrow screens; hook registration is optional. | Narrow-screen Edge test passes; author device test on Android and iOS. |
+| Official discoverability | Upstream suggests a PR to `community-plugins.json`; this is not a secure automatic code-sync mechanism. | PR [super-productivity#10106](https://github.com/super-productivity/super-productivity/pull/10106) is open and not merged. |
 
 Official sources: [plugin guide](https://github.com/super-productivity/super-productivity/blob/master/docs/plugin-development.md), [Plugin API](https://github.com/super-productivity/super-productivity/blob/master/packages/plugin-api/README.md), [plugin management](https://github.com/super-productivity/super-productivity/blob/master/docs/wiki/2.21-Manage-Plugins.md), [platform differences](https://github.com/super-productivity/super-productivity/blob/master/docs/wiki/3.05-Web-App-vs-Desktop.md).

@@ -23,15 +23,18 @@ let addedTask = null;
 let updatedTask = null;
 let hostDownload = null;
 let postedDownload = null;
+let darkTheme = false;
 const context = {
   console, Date, TextDecoder, Blob, URL,
   crypto: { randomUUID: () => `test-${++nextId}` },
   navigator: { language: 'en-US' },
   matchMedia: () => ({ matches: false }),
+  getComputedStyle: () => ({ getPropertyValue: (name) => (name === '--is-dark-theme' && darkTheme ? '1' : '') }),
   setInterval() {}, setTimeout() {}, clearTimeout() {},
   confirm: () => true,
   document: {
     body: { dataset: {}, style: { setProperty() {} } },
+    documentElement: { style: {} },
     visibilityState: 'visible',
     addEventListener() {},
     getElementById: element,
@@ -59,6 +62,13 @@ context.hostileName = "'><img src=x onerror=alert(1)>";
 assert.equal(evaluate('esc(hostileName)'), '&#39;&gt;&lt;img src=x onerror=alert(1)&gt;');
 assert.equal(evaluate("safeObsidianUrl('javascript:alert(1)')"), '');
 assert.equal(evaluate("safeObsidianUrl('obsidian://open?vault=notes')"), 'obsidian://open?vault=notes');
+evaluate('applySettings()');
+assert.equal(context.document.documentElement.style.colorScheme, 'light', 'a light host theme keeps light form controls');
+darkTheme = true;
+evaluate('applySettings()');
+assert.equal(context.document.documentElement.style.colorScheme, 'dark', 'a dark host theme switches form controls to dark');
+darkTheme = false;
+evaluate('applySettings()');
 assert.equal(evaluate("weekdayFromText('Monday')"), 1);
 assert.equal(evaluate("weekdayFromText('月曜日')"), 1);
 assert.equal(evaluate("weekdayFromText('星期五')"), 5);

@@ -15,6 +15,7 @@
       .week-grid.with-time-axis { grid-template-columns: 42px repeat(var(--day-count), minmax(120px, 1fr)); }
       .day { min-width: 120px; }
       .day h3 { color: var(--text-color-muted); font-size: .9rem; }
+      .day.today h3 { color: var(--plugin-accent, var(--c-accent)); }
       .class-card { border-left: 5px solid var(--course-color); padding: var(--s); }
       #timetable .class-card { cursor: pointer; }
       #timetable .class-card:focus-visible, .course-jump-highlight { outline: 2px solid var(--plugin-accent, var(--c-accent)); outline-offset: 2px; }
@@ -53,8 +54,8 @@
       .task-list { margin: var(--s) 0 0; padding-left: 22px; }
       .task-row, .event-row { margin: 6px 0; }
       .badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: .72rem; background: color-mix(in srgb, var(--plugin-accent, var(--c-accent)) 18%, transparent); }
-      .warning { color: #b45309; }
-      .danger { color: #dc2626; }
+      .warning { color: var(--color-warning, #b45309); }
+      .danger { color: var(--color-danger, #dc2626); }
       .preview-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
       .preview-table th, .preview-table td { padding: 6px; border-bottom: 1px solid var(--divider-color); text-align: left; }
       .preview-scroll { max-height: 55vh; overflow: auto; }
@@ -70,12 +71,12 @@
       label { display: grid; gap: var(--s-half); }
       [hidden] { display: none !important; }
       input, select, textarea, button { font: inherit; }
-      input, select, textarea { box-sizing: border-box; width: 100%; padding: var(--s); color: inherit; background: var(--input-bg); border: 1px solid var(--divider-color); border-radius: 4px; }
+      input, select, textarea { box-sizing: border-box; width: 100%; padding: var(--s); color: inherit; background: var(--card-bg, #fff); border: 1px solid var(--divider-color); border-radius: 4px; }
       button { cursor: pointer; }
       .primary, .plain { min-height: 40px; border-radius: 4px; padding: 8px 14px; }
       .primary { border: 0; background: var(--c-accent); color: var(--text-color-most-intense); }
       .plain { border: 1px solid var(--divider-color); background: transparent; color: inherit; }
-      dialog { color: #222; background: #fff; border: 1px solid #ddd; border-radius: 8px; width: min(700px, calc(100vw - 32px)); }
+      dialog { color: var(--text-color, #222); background: var(--card-bg, #fff); border: 1px solid var(--divider-color, #ddd); border-radius: 8px; width: min(700px, calc(100vw - 32px)); }
       dialog::backdrop { background: #0006; }
       dialog form { display: grid; gap: var(--s2); }
       .empty { color: var(--text-color-muted); text-align: center; padding: var(--s3); }
@@ -89,7 +90,7 @@
         body { padding: 10px 10px 76px; } .page { max-width: 100%; } .semester-grid, .form-grid { grid-template-columns: 1fr; }
         .toolbar { align-items: flex-start; } .toolbar h1 { font-size: 1.2rem; } .toolbar .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr auto; }
         .toolbar #export, .toolbar #sync-all, .toolbar #help, .toolbar #settings { display: none; } .mobile-only { display: inline-flex; }
-        .week-grid, .week-grid.with-time-axis { display: block; overflow: visible; } .timeline-axis { display: none; } .day { min-width: 0; } .class-card { min-height: 44px; }
+        .week-grid, .week-grid.with-time-axis { display: block; overflow: visible; } .timeline-axis { display: none; } .day { min-width: 0; } .day + .day { margin-top: var(--s3); } .class-card { min-height: 44px; }
         .view-tabs { display: none; } .course-bottom, .stat-options { grid-template-columns: 1fr; } .course-actions { width: 100%; } .course-actions > button, .course-more { flex: 1 1 0; } .course-more > summary { text-align: center; } .course-more-menu { min-width: 160px; }
         button, summary, input, select { min-height: 44px; } dialog { box-sizing: border-box; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 0; border: 0; } dialog form { min-height: calc(100dvh - 32px); align-content: start; }
         .preview-table, .preview-table tbody, .preview-table tr, .preview-table td { display: block; width: 100%; box-sizing: border-box; } .preview-table thead { display: none; } .preview-table tr { margin-bottom: 10px; padding: 10px; border: 1px solid var(--divider-color); border-radius: 8px; } .preview-table td { border: 0; padding: 3px 0; }
@@ -254,7 +255,7 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
       const uid = () => crypto.randomUUID();
       const safeObsidianUrl = (value) => /^obsidian:\/\/[^\s<>"']+$/i.test(String(value || '')) ? String(value) : '';
       function showCourseNotes(course) { const url = safeObsidianUrl(course?.obsidianLink); if (!url) return; $('note-link-value').value = url; $('note-link-open').href = url; $('note-link-dialog').showModal(); }
-      document.addEventListener('click', (event) => { const link = event.target.closest('#courses a[href], #today-view a[href]'); if (!link) return; event.preventDefault(); showCourseNotes({ obsidianLink: link.getAttribute('href') }); });
+      document.addEventListener('click', (event) => { const summary = event.target.closest('summary'); if (summary) document.querySelectorAll('.course-more[open]').forEach((menu) => { if (menu !== summary.parentNode) menu.open = false; }); const link = event.target.closest('#courses a[href], #today-view a[href]'); if (!link) return; event.preventDefault(); showCourseNotes({ obsidianLink: link.getAttribute('href') }); });
       $('note-link-copy').onclick = async () => { const input = $('note-link-value'); try { if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable'); await navigator.clipboard.writeText(input.value); PluginAPI.showSnack?.({ msg: await tr('UI.COPIED'), type: 'SUCCESS' }); } catch (error) { input.focus(); input.select(); PluginAPI.showSnack?.({ msg: await tr('UI.COPY_MANUAL'), type: 'INFO' }); } };
 
       async function load() {
@@ -324,6 +325,8 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
       const saveSettings = () => PluginAPI.persistDataSynced(JSON.stringify(settings), 'ui-settings');
       const applySettings = () => {
         document.body.dataset.density = settings.density;
+        const darkTheme = getComputedStyle(document.documentElement).getPropertyValue('--is-dark-theme').trim() === '1';
+        document.documentElement.style.colorScheme = darkTheme ? 'dark' : 'light';
         const colors = { theme: 'var(--c-accent)', blue: '#3b82f6', green: '#22a06b', orange: '#f59e0b', purple: '#8b5cf6' };
         const custom = /^#[0-9a-f]{6}$/i.test(settings.customColor) ? settings.customColor : '#3b82f6';
         document.body.style.setProperty('--plugin-accent', settings.accent === 'custom' ? custom : colors[settings.accent] || colors.theme);
@@ -400,7 +403,10 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
         return groups.sort((a, b) => firstTime(a) - firstTime(b) || a.name.localeCompare(b.name) || a.key.localeCompare(b.key));
       }
       function visibleWeekdays() {
-        if (isMobile()) return [new Date().getDay() || 7];
+        // Mobile stacks day sections, so cover the whole week and let the render
+        // loop drop days without classes. Showing only today left the timetable
+        // blank on any day the student has no class.
+        if (isMobile()) return [1, 2, 3, 4, 5, 6, 7];
         const weekdays = [1, 2, 3, 4, 5];
         if (settings.showWeekends && [6, 7].some((day) => coursesForWeek(selectedWeek).some((course) => Number(course.weekday) === day))) weekdays.push(6, 7);
         return weekdays;
@@ -551,7 +557,8 @@ $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><
         return renderTimetable();
       }
       async function renderTimetable() {
-        const effectiveDisplayMode = isMobile() ? 'list' : displayMode;
+        const mobileList = isMobile();
+        const effectiveDisplayMode = mobileList ? 'list' : displayMode;
         $('display-mode').value = effectiveDisplayMode;
         $('course-sort').value = settings.courseSort;
         $('week-label').textContent = await tr('UI.WEEK', { count: selectedWeek });
@@ -567,9 +574,12 @@ $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><
         $('timetable').style.setProperty('--day-count', weekdays.length);
         let weekHtml = '';
         if (sharedTimeLabels) weekHtml = `<div class="timeline-axis"><div class="timeline-hours">${timelineHours}</div></div>`;
+        const isCurrentWeek = selectedWeek === semesterWeek(new Date());
+        const todayWeekday = new Date().getDay() || 7;
         for (const day of weekdays) {
           const active = weekCourses.filter((course) => Number(course.weekday) === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
-          if (effectiveDisplayMode === 'list') { const currentCourse = selectedWeek === semesterWeek(new Date()) ? getCurrentCourse() : null; weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3>${active.length ? active.map((course) => `<div class="class-card${currentCourse?.id === course.id ? ' current-course' : ''}${conflicts.has(course.id) ? ' danger' : ''}" data-course-id="${esc(course.id)}" role="button" tabindex="0" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`; }
+          if (mobileList && !active.length) continue;
+          if (effectiveDisplayMode === 'list') { const currentCourse = isCurrentWeek ? getCurrentCourse() : null; const today = isCurrentWeek && day === todayWeekday; weekHtml += `<div class="day${today ? ' today' : ''}"><h3>${esc(await tr(`DAY.${day}`))}${today ? ` · ${esc(await tr('UI.VIEW_TODAY'))}` : ''}</h3>${active.length ? active.map((course) => `<div class="class-card${currentCourse?.id === course.id ? ' current-course' : ''}${conflicts.has(course.id) ? ' danger' : ''}" data-course-id="${esc(course.id)}" role="button" tabindex="0" style="--course-color:${esc(course.color)}"><strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`).join('') : ''}</div>`; }
           else {
             const currentCourse = getCurrentCourse();
             const cards = timelineLayout(active).map(({ course, lane, lanes }) => { const top = Math.max(0, (minutesOfDay(course.startTime) - 7 * 60)); const height = Math.max(30, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)); const label = settings.timeLabels === 'each' ? `<div class="timeline-time-label">${esc(course.startTime)}</div>` : ''; const width = 100 / lanes; return `<div class="class-card timeline-card${conflicts.has(course.id) ? ' danger' : ''}${currentCourse?.id === course.id ? ' current-course' : ''}" data-course-id="${esc(course.id)}" role="button" tabindex="0" style="--course-color:${esc(course.color)};top:${top}px;height:${height}px;left:calc(${lane * width}% + 2px);right:auto;width:calc(${width}% - 4px)">${label}<strong>${esc(course.name)}</strong><div class="class-time">${esc(course.startTime)}–${esc(course.endTime)}</div><div class="muted">${esc(course.location)}</div></div>`; }).join('');
@@ -578,7 +588,7 @@ $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><
             weekHtml += `<div class="day"><h3>${esc(await tr(`DAY.${day}`))}</h3><div class="timeline"><div class="timeline-track">${current}${cards}</div></div></div>`;
           }
         }
-        $('timetable').innerHTML = weekHtml;
+        $('timetable').innerHTML = weekHtml || `<div class="empty">${esc(await tr('UI.NO_CLASSES'))}</div>`;
         await renderStatus();
         $('week-stats').innerHTML = await statisticsHtml(selectedWeek);
         if (!state.courses.length) {

@@ -5,10 +5,9 @@ if (window[handlerKey]) {
   window.removeEventListener('message', window[handlerKey]);
 }
 
-// Only this plugin's own iframes may trigger a download. event.origin cannot be
-// used here: the plugin iframe is a same-origin srcdoc frame, so on packaged
-// file:// builds its serialized origin is "null" while location.origin stays
-// "file://". Comparing contentWindow works in both cases.
+// Only this plugin's own iframes may trigger a download. The origin is not a
+// stable identity check here: packaged builds run from file:, where the origin a
+// frame reports is browser-dependent, so compare the concrete contentWindow.
 function isOwnIframe(source) {
   if (!source) return false;
   var frames = document.querySelectorAll('iframe[data-plugin-id="' + pluginId + '"]');

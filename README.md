@@ -4,7 +4,7 @@
 
 Manage university courses, teaching weeks, assignments, timetable imports, and calendar exports directly inside Super Productivity.
 
-Version `2.4.0` includes the Timetable, Plan, and Today workbench, self-contained XLSX/DOCX import, editable import preview, course task templates, and lightweight week statistics. Image-only Word documents are not OCRed. See [requirements and Android audit](REQUIREMENTS.md) and the [development log](DEVELOPMENT_LOG.md).
+Current version `2.6.3` adds host dark-theme support, a phone timetable that lists the whole teaching week, attribute-safe HTML escaping, and a deterministic local/CI release ZIP. See [requirements and mobile audit](REQUIREMENTS.md) and the [development log](DEVELOPMENT_LOG.md).
 
 [English](#english) | [中文](#中文)
 
@@ -65,7 +65,7 @@ Version `2.4.0` includes the Timetable, Plan, and Today workbench, self-containe
 6. Restart Super Productivity if requested.
 7. Open **Courses & Timetable** from the plugin entry.
 
-Install the plugin ZIP separately on each computer or phone where you use it. Once the same plugin ID is installed and SP sync is configured, semester, course, event, exception, mapping, and display data use SP synced plugin storage. Syncing data does not install plugin code. Android compatibility depends on whether your SP build exposes plugin installation and the iframe Plugin API; this has not yet been verified on a physical device.
+Install the plugin ZIP separately on each computer or phone where you use it. Once the same plugin ID is installed and SP sync is configured, semester, course, event, exception, mapping, and display data use SP synced plugin storage. Syncing data does not install plugin code. Installation, iframe loading, file import, and export were verified on physical Android and iOS devices; version `2.6.3` also follows the host dark theme and lists the whole teaching week on a phone instead of a single day. See [requirements and mobile audit](REQUIREMENTS.md) for per-capability status.
 
 ### Compatibility
 
@@ -144,6 +144,8 @@ The equivalent pnpm scripts are `pnpm test` and `pnpm run package`. The ZIP land
 
 Pushing a `vX.Y.Z` tag runs the same steps in `.github/workflows/package.yml` and attaches the ZIP to a GitHub release; the tag must match the `manifest.json` version. Every other push and pull request uploads the ZIP as a build artifact.
 
+To cut a release without editing version files by hand, run the **Bump version and release** workflow from the Actions tab and pick `current`, `patch`, `minor` or `major`. It runs the same smoke tests and packaging step, writes the version into `manifest.json` and `package.json`, commits it, tags it, and publishes the release with the ZIP it just built. `current` publishes the version already committed and skips the commit. A tag you push yourself is published by `package.yml` instead.
+
 Package the generated `dist/index.html`, not the readable source at the repository root. The build fails if the generated file reaches Super Productivity's 100 KB iframe limit.
 
 ---
@@ -211,7 +213,7 @@ Package the generated `dist/index.html`, not the readable source at the reposito
 6. 如有提示，重启 Super Productivity
 7. 从插件入口打开 **Courses & Timetable**
 
-电脑和手机需分别安装一次插件 ZIP。安装相同插件 ID 并配置 SP 同步后，学期、课程、事件、调课、任务对应关系和界面设置使用 SP 插件同步存储；数据同步不会自动安装插件代码。Android 端能否安装并加载插件还需在实际设备和对应 SP 版本上验证。
+电脑和手机需分别安装一次插件 ZIP。安装相同插件 ID 并配置 SP 同步后，学期、课程、事件、调课、任务对应关系和界面设置使用 SP 插件同步存储；数据同步不会自动安装插件代码。插件安装、iframe 加载、文件导入和导出已在 Android 与 iOS 真机上验证；`2.6.3` 起插件跟随宿主深色主题，手机端课表按整周列出有课的日期，不再只显示当天。逐项状态见 [需求文档](REQUIREMENTS.md)。
 
 ### 兼容性
 
@@ -290,6 +292,8 @@ package.cmd
 
 推送 `vX.Y.Z` 标签后，`.github/workflows/package.yml` 执行相同步骤并把 ZIP 附加到 GitHub Release，标签必须与 `manifest.json` 版本一致；其余 push 与 pull request 会把 ZIP 作为构建产物上传。
 
+不想手改版本号时，在 Actions 页面运行 **Bump version and release** 并选择 `current`、`patch`、`minor` 或 `major`：它执行同样的冒烟测试与打包，把版本写入 `manifest.json` 与 `package.json` 并提交，打上标签，再用本次构建出的 ZIP 发布 Release。选 `current` 表示直接发布已提交的版本，不产生提交。你自己手动推送的标签则由 `package.yml` 发布。
+
 请打包生成的 `dist/index.html`，不要直接打包仓库根目录的可读源码。构建会检查 100 KB 限制，超限时直接报错。
 
 ---
@@ -297,4 +301,6 @@ package.cmd
 ## 📄 License
 
 [MIT](LICENSE)
+
+Maintained by [Khk-NL](https://github.com/Khk-NL). The `author` field in `manifest.json` credits the same maintainer under the publishing name `SCSldr`.
 ```
