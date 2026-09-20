@@ -4,7 +4,7 @@
 
 Manage university courses, teaching weeks, assignments, timetable imports, and calendar exports directly inside Super Productivity.
 
-Current version `2.6.3` adds host dark-theme support, a phone timetable that lists the whole teaching week, attribute-safe HTML escaping, and a deterministic local/CI release ZIP. See [requirements and mobile audit](REQUIREMENTS.md) and the [development log](DEVELOPMENT_LOG.md).
+Current version `2.7.0` lets one course meet on several weekdays, adds host dark-theme support, a phone timetable that lists the whole teaching week, attribute-safe HTML escaping, and a deterministic local/CI release ZIP. See [requirements and mobile audit](REQUIREMENTS.md) and the [development log](DEVELOPMENT_LOG.md).
 
 [English](#english) | [中文](#中文)
 
@@ -22,12 +22,13 @@ Current version `2.6.3` adds host dark-theme support, a phone timetable that lis
 
 #### Course management
 - Create courses with:
-  - Weekday
+  - One or more weekdays
   - Start and end time
   - Location
   - Teacher
   - Start and end week
   - Odd / even / custom week rules
+- Keep one record for a course that meets several days a week; it appears on every selected weekday
 - Store course notes
 - Add optional Obsidian links
 
@@ -89,12 +90,12 @@ Supported Chinese headers include:
 课程名称,教师,地点,星期,开始时间,结束时间,开始周,结束周,周次模式,自定义周次,颜色,备注,Obsidian链接,项目
 ```
 
-Equivalent English headers are also accepted.
+Equivalent English headers are also accepted. The weekday column accepts one day or a list, for example `周一,周三` or `Mon,Wed`.
 
 A course is treated as a duplicate and skipped when the following fields match an existing course:
 
 - Course name
-- Weekday
+- Weekdays
 - Start time
 - End time
 
@@ -163,7 +164,7 @@ Package the generated `dist/index.html`, not the readable source at the reposito
 #### 课程管理
 支持为课程设置：
 
-- 星期
+- 一个或多个星期（一周多次上课的课程保存为一条记录）
 - 上课时间
 - 上课地点
 - 教师
@@ -237,7 +238,7 @@ Super Productivity >= 18.21.2
 课程名称,教师,地点,星期,开始时间,结束时间,开始周,结束周,周次模式,自定义周次,颜色,备注,Obsidian链接,项目
 ```
 
-同时支持对应的英文表头。
+同时支持对应的英文表头。「星期」列支持单个星期或列表，例如 `周一,周三`、`Mon,Wed`。
 
 如果以下字段均与现有课程一致，则该课程会被视为重复课程并跳过：
 

@@ -24,7 +24,8 @@ Core principles:
 
 ### Course
 
-- Name, teacher, location, weekday, start/end time.
+- Name, teacher, location, one or more weekdays, start/end time.
+- A course that meets on several weekdays in the same week is one record; its time, weeks, and pattern apply to every selected weekday.
 - Start/end week and every/odd/even/custom weeks.
 - Default project, task-title prefix, color, Obsidian URL, and optional tag IDs.
 - May link to one primary synced SP task and multiple related SP tasks.
@@ -38,6 +39,7 @@ Core principles:
 
 - Course ID and teaching week.
 - Cancelled flag or overridden weekday, time, location, and teacher.
+- Applies to the whole course in that teaching week: cancelling clears every weekday of the course, and a reschedule replaces them with the one overridden weekday and time.
 - Must affect timetable, current/next matching, plan, today, conflict detection, ICS, and statistics.
 
 ## 3. Workspace views
@@ -105,6 +107,7 @@ All sources convert to one Grid or structured-course representation, then reuse 
 ### Accepted weekday expressions
 
 - `周一`, `星期一`, `Monday`, `Mon`, `月曜日`, numeric weekday labels, and equivalent supported days.
+- A list in one weekday cell or column selects several weekdays for one course, separated by `,`, `，`, `、`, `;`, or `/`; for example `周一,周三`, `Mon;Wed`, or `1,3`.
 
 ## 6. Conflict detection
 
@@ -184,9 +187,10 @@ Parser fixtures must cover:
 - Structured CSV, weekly CSV/TSV, HTML, XLSX, DOCX.
 - `rowspan`/`colspan` and spreadsheet merged cells.
 - Chinese, English, Japanese, and numeric weekday labels.
+- Multi-weekday courses: one record resolving to one occurrence per selected weekday, a weekday list in one import cell, per-weekday conflict detection, and whole-course exceptions.
 - Odd/even weeks, `1~3,5~16周`, and one-week classes.
 - Broken-line times, duplicates, conflicts, cancellations, and rescheduling.
-- Legacy state migration and synced multi-semester round trips.
+- Legacy single-weekday state and synced multi-semester round trips.
 
 ## 13. Delivery and versioning
 
@@ -194,7 +198,8 @@ Parser fixtures must cover:
 - Update manifest and package versions together.
 - Run syntax, JSON, parser, state-migration, and focused UI smoke checks before each push.
 - Release ZIPs must contain the built `dist/index.html`, and CI must reject a packaged iframe file of 100,000 bytes or more.
-- For same-name course occurrences that overlap in one teaching week, show the longer occurrence and exclude the shorter one from conflict counts, live status, statistics and ICS without deleting stored course records.
+- For same-name course occurrences that overlap in one teaching week, show the longer occurrence and exclude the shorter one from conflict counts, live status, statistics and ICS without deleting stored course records. The comparison is per resolved weekday occurrence, so a multi-weekday course loses only the overlapping day.
+- A stored course keeps `weekday` as its first selected weekday, so data written by a newer build still renders on an older one.
 - Offer a per-statistic visibility setting for all seven course statistics; persist it through synced UI settings.
 - Push normal fast-forward commits to `main`; never overwrite remote history with force push.
 
@@ -204,6 +209,7 @@ Planned release groups:
 2. `2.2.x`: self-contained XLSX/DOCX import and import-source selection.
 3. `2.3.x`: complete help center, mobile fallbacks, and responsive/mobile navigation.
 4. `2.4.x`: templates, statistics, Obsidian refinements, fixtures, and maintenance cleanup.
+5. `2.7.x`: multi-weekday courses, import weekday lists, and per-weekday occurrence handling.
 
 ## 14. Mobile compatibility audit
 

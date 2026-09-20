@@ -135,7 +135,7 @@
           <label><span data-i18n="UI.COURSE_NAME">Course name</span><input id="course-name" required maxlength="160" /></label>
           <label><span data-i18n="UI.TEACHER">Teacher</span><input id="teacher" maxlength="120" /></label>
           <label><span data-i18n="UI.LOCATION">Location</span><input id="location" maxlength="120" /></label>
-          <label><span data-i18n="UI.WEEKDAY">Weekday</span><select id="weekday"></select></label>
+          <label><span data-i18n="UI.WEEKDAYS">Weekdays</span><select id="weekday" multiple size="7" required></select></label>
           <label><span data-i18n="UI.START_TIME">Start time</span><input id="start-time" type="time" required /></label>
           <label><span data-i18n="UI.END_TIME">End time</span><input id="end-time" type="time" required /></label>
           <label><span data-i18n="UI.START_WEEK">Start week</span><input id="start-week" type="number" min="1" value="1" required /></label>
@@ -166,7 +166,7 @@
     </form></dialog>
 
     <dialog id="import-preview-dialog"><form id="import-preview-form"><h2 data-i18n="UI.IMPORT_PREVIEW">Import preview</h2><div id="import-summary" class="panel"></div><div class="preview-scroll"><table class="preview-table"><thead><tr><th data-i18n="UI.COURSE_NAME">Course</th><th data-i18n="UI.WEEKDAY">Day</th><th data-i18n="UI.START_TIME">Time</th><th data-i18n="UI.WEEKS">Weeks</th><th data-i18n="UI.TEACHER">Teacher</th><th data-i18n="UI.LOCATION">Location</th><th data-i18n="UI.STATUS">Status</th></tr></thead><tbody id="import-preview-body"></tbody></table></div><div class="actions"><button id="import-preview-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.IMPORT">Import</button></div></form></dialog>
-    <dialog id="import-edit-dialog"><form id="import-edit-form"><h2 data-i18n="UI.EDIT">Edit</h2><input id="import-edit-index" type="hidden" /><div class="form-grid"><label><span data-i18n="UI.COURSE_NAME">Course</span><input id="import-edit-name" required /></label><label><span data-i18n="UI.WEEKDAY">Day</span><select id="import-edit-weekday"></select></label><label><span data-i18n="UI.START_TIME">Start</span><input id="import-edit-start" type="time" required /></label><label><span data-i18n="UI.END_TIME">End</span><input id="import-edit-end" type="time" required /></label><label><span data-i18n="UI.START_WEEK">Start week</span><input id="import-edit-start-week" type="number" min="1" required /></label><label><span data-i18n="UI.END_WEEK">End week</span><input id="import-edit-end-week" type="number" min="1" required /></label><label><span data-i18n="UI.TEACHER">Teacher</span><input id="import-edit-teacher" /></label><label><span data-i18n="UI.LOCATION">Location</span><input id="import-edit-location" /></label></div><div class="actions"><button id="import-edit-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div></form></dialog>
+    <dialog id="import-edit-dialog"><form id="import-edit-form"><h2 data-i18n="UI.EDIT">Edit</h2><input id="import-edit-index" type="hidden" /><div class="form-grid"><label><span data-i18n="UI.COURSE_NAME">Course</span><input id="import-edit-name" required /></label><label><span data-i18n="UI.WEEKDAYS">Days</span><select id="import-edit-weekday" multiple size="4"></select></label><label><span data-i18n="UI.START_TIME">Start</span><input id="import-edit-start" type="time" required /></label><label><span data-i18n="UI.END_TIME">End</span><input id="import-edit-end" type="time" required /></label><label><span data-i18n="UI.START_WEEK">Start week</span><input id="import-edit-start-week" type="number" min="1" required /></label><label><span data-i18n="UI.END_WEEK">End week</span><input id="import-edit-end-week" type="number" min="1" required /></label><label><span data-i18n="UI.TEACHER">Teacher</span><input id="import-edit-teacher" /></label><label><span data-i18n="UI.LOCATION">Location</span><input id="import-edit-location" /></label></div><div class="actions"><button id="import-edit-cancel" type="button" class="plain" data-i18n="UI.CANCEL">Cancel</button><button class="primary" data-i18n="UI.SAVE">Save</button></div></form></dialog>
 
     <dialog id="assignment-dialog">
       <form id="assignment-form">
@@ -226,15 +226,17 @@
       let pendingImport = null;
       let initialized = false;
       const $ = (id) => document.getElementById(id);
+      const selectedWeekdays = (id) => Array.from($(id).selectedOptions).map((option) => Number(option.value));
+      const setSelectedWeekdays = (id, days) => { const chosen = days.length ? days : [1]; Array.from($(id).options).forEach((option) => { option.selected = chosen.includes(Number(option.value)); }); };
       const isMobile = () => ['android', 'ios'].includes(PluginAPI.cfg?.platform) || matchMedia('(max-width: 680px)').matches;
       const LOCAL_TRANSLATIONS = {
-        en: { UI: { TITLE:'Courses & Timetable', COURSES:'Courses', SEMESTER:'Semester', CURRENT_SEMESTER:'Current semester', NEW_SEMESTER:'New semester', NEW_SEMESTER_NAME:'Enter semester name', CLEAR_SEMESTER:'Clear current timetable', CONFIRM_CLEAR_SEMESTER:'Clear all courses and assignments in the current semester?', SEMESTER_NAME:'Semester name', START_DATE:'First Monday', WEEKS:'Weeks', SAVE_SEMESTER:'Save semester', WEEK:'Week', PREVIOUS:'Previous', NEXT:'Next', ADD_COURSE:'Add course', IMPORT:'Import CSV / HTML', EXPORT_ICS:'Export timetable (.ics)', SYNC_ALL:'Sync to plan', SYNC:'Sync', NO_CLASSES:'No classes this week.', CURRENT:'Now: {{name}} ({{time}})', FREE_NOW:'No class now', NEXT_CLASS:'Next: {{name}} at {{time}}', NO_NEXT:'No more classes today', SINCE_START:'Starts in {{minutes}} min', UNTIL_END:'Ends in {{minutes}} min', SYNCED:'Plan synced', SYNC_UNSUPPORTED:'This SP version cannot update existing tasks.', COURSE_NAME:'Course name', TEACHER:'Teacher', LOCATION:'Location', WEEKDAY:'Weekday', START_TIME:'Start time', END_TIME:'End time', START_WEEK:'Start week', END_WEEK:'End week', PATTERN:'Week pattern', CUSTOM_WEEKS:'Custom weeks (comma separated)', COLOR:'Color', NOTE:'Note', OBSIDIAN_LINK:'Obsidian link', PROJECT:'Assignment project', NONE:'None', EVERY:'Every week', ODD:'Odd weeks', EVEN:'Even weeks', CUSTOM:'Custom weeks', SAVE:'Save', CANCEL:'Cancel', EDIT:'Edit', DELETE:'Delete', ADD_ASSIGNMENT:'Add assignment', ASSIGNMENT_TITLE:'Assignment title', DUE_DAY:'Due date', ESTIMATE:'Estimate (minutes)', CREATED:'Assignment task created', SAVED:'Course saved', CONFIRM_DELETE:'Delete this course?', IMPORT_CONFIRM:'Import {{count}} courses? {{corrected}} corrected, {{skipped}} invalid skipped. Existing duplicates will also be skipped.', IMPORTED:'Imported {{count}} courses', IMPORT_EMPTY:'No recognizable course rows were found.', SETTINGS:'Settings', DENSITY:'Layout density', COMFORTABLE:'Comfortable', COMPACT:'Compact', LANGUAGE:'Plugin language', LANGUAGE_AUTO:'Follow SP language', ACCENT:'Card accent color', FOLLOW_THEME:'Follow SP theme', BLUE:'Blue', GREEN:'Green', ORANGE:'Orange', PURPLE:'Purple', CUSTOM_COLOR:'Custom', CUSTOM_COLOR_VALUE:'Custom card color', SHOW_WEEKENDS:'Show weekends', SETTINGS_SAVED:'Settings saved' }, DAY: { 1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday', 7:'Sunday' } },
-        zh: { UI: { TITLE:'课程与课表', COURSES:'课程列表', SEMESTER:'学期', CURRENT_SEMESTER:'当前学期', NEW_SEMESTER:'新建学期', NEW_SEMESTER_NAME:'请输入学期名称', CLEAR_SEMESTER:'清空当前学期课表', CONFIRM_CLEAR_SEMESTER:'确定清空当前学期的课程和作业吗？', SEMESTER_NAME:'学期名称', START_DATE:'第一周周一', WEEKS:'总周数', SAVE_SEMESTER:'保存学期', WEEK:'第 {{count}} 周', PREVIOUS:'上一周', NEXT:'下一周', ADD_COURSE:'添加课程', IMPORT:'导入 CSV / HTML', EXPORT_ICS:'导出课表（.ics）', SYNC_ALL:'同步到计划', SYNC:'同步', NO_CLASSES:'本周没有课程。', CURRENT:'现在：{{name}}（{{time}}）', FREE_NOW:'当前没有课', NEXT_CLASS:'下一节：{{name}}，{{time}} 开始', NO_NEXT:'今天没有下一节课', SINCE_START:'距离上课还有 {{minutes}} 分钟', UNTIL_END:'距离下课还有 {{minutes}} 分钟', SYNCED:'计划已同步', SYNC_UNSUPPORTED:'当前 SP 版本不支持更新已有任务。', COURSE_NAME:'课程名称', TEACHER:'教师', LOCATION:'地点', WEEKDAY:'星期', START_TIME:'开始时间', END_TIME:'结束时间', START_WEEK:'开始周', END_WEEK:'结束周', PATTERN:'周次模式', CUSTOM_WEEKS:'自定义周次（逗号分隔）', COLOR:'颜色', NOTE:'备注', OBSIDIAN_LINK:'Obsidian 链接', PROJECT:'作业所属项目', NONE:'无', EVERY:'每周', ODD:'单周', EVEN:'双周', CUSTOM:'自定义周次', SAVE:'保存', CANCEL:'取消', EDIT:'编辑', DELETE:'删除', ADD_ASSIGNMENT:'添加作业', ASSIGNMENT_TITLE:'作业标题', DUE_DAY:'截止日期', ESTIMATE:'预计耗时（分钟）', CREATED:'作业任务已创建', SAVED:'课程已保存', CONFIRM_DELETE:'删除这门课程？', IMPORT_CONFIRM:'识别到 {{count}} 门课程，其中自动修正 {{corrected}} 门、跳过无效数据 {{skipped}} 门。已有重复课程也会跳过。', IMPORTED:'已导入 {{count}} 门课程', IMPORT_EMPTY:'没有识别到有效的课程行。', SETTINGS:'设置', DENSITY:'界面密度', COMFORTABLE:'舒适', COMPACT:'紧凑', LANGUAGE:'插件语言', LANGUAGE_AUTO:'跟随 SP 语言', ACCENT:'卡片强调色', FOLLOW_THEME:'跟随 SP 主题', BLUE:'蓝色', GREEN:'绿色', ORANGE:'橙色', PURPLE:'紫色', CUSTOM_COLOR:'自定义', CUSTOM_COLOR_VALUE:'自定义卡片颜色', SHOW_WEEKENDS:'显示周末', SETTINGS_SAVED:'设置已保存' }, DAY: { 1:'周一', 2:'周二', 3:'周三', 4:'周四', 5:'周五', 6:'周六', 7:'周日' } }
+        en: { UI: { TITLE:'Courses & Timetable', COURSES:'Courses', SEMESTER:'Semester', CURRENT_SEMESTER:'Current semester', NEW_SEMESTER:'New semester', CLEAR_SEMESTER:'Clear current timetable', CONFIRM_CLEAR_SEMESTER:'Clear all courses and assignments in the current semester?', SEMESTER_NAME:'Semester name', START_DATE:'First Monday', WEEKS:'Weeks', SAVE_SEMESTER:'Save semester', WEEK:'Week', PREVIOUS:'Previous', NEXT:'Next', ADD_COURSE:'Add course', IMPORT:'Import CSV / HTML', SYNC_ALL:'Sync to plan', SYNC:'Sync', NO_CLASSES:'No classes this week.', CURRENT:'Now: {{name}} ({{time}})', FREE_NOW:'No class now', NEXT_CLASS:'Next: {{name}} at {{time}}', NO_NEXT:'No more classes today', SINCE_START:'Starts in {{minutes}} min', UNTIL_END:'Ends in {{minutes}} min', SYNCED:'Plan synced', SYNC_UNSUPPORTED:'This SP version cannot update existing tasks.', COURSE_NAME:'Course name', TEACHER:'Teacher', LOCATION:'Location', WEEKDAY:'Weekday', START_TIME:'Start time', END_TIME:'End time', START_WEEK:'Start week', END_WEEK:'End week', PATTERN:'Week pattern', CUSTOM_WEEKS:'Custom weeks (comma separated)', COLOR:'Color', NOTE:'Note', OBSIDIAN_LINK:'Obsidian link', PROJECT:'Assignment project', NONE:'None', EVERY:'Every week', ODD:'Odd weeks', EVEN:'Even weeks', CUSTOM:'Custom weeks', SAVE:'Save', CANCEL:'Cancel', EDIT:'Edit', DELETE:'Delete', ADD_ASSIGNMENT:'Add assignment', ASSIGNMENT_TITLE:'Assignment title', DUE_DAY:'Due date', ESTIMATE:'Estimate (minutes)', CREATED:'Assignment task created', SAVED:'Course saved', CONFIRM_DELETE:'Delete this course?', IMPORTED:'Imported {{count}} courses', IMPORT_EMPTY:'No recognizable course rows were found.', SETTINGS:'Settings', DENSITY:'Layout density', COMFORTABLE:'Comfortable', COMPACT:'Compact', LANGUAGE:'Plugin language', LANGUAGE_AUTO:'Follow SP language', ACCENT:'Card accent color', FOLLOW_THEME:'Follow SP theme', BLUE:'Blue', GREEN:'Green', ORANGE:'Orange', PURPLE:'Purple', CUSTOM_COLOR:'Custom', CUSTOM_COLOR_VALUE:'Custom card color', SHOW_WEEKENDS:'Show weekends', SETTINGS_SAVED:'Settings saved' }, DAY: { 1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday', 7:'Sunday' } },
+        zh: { UI: { TITLE:'课程与课表', COURSES:'课程列表', SEMESTER:'学期', CURRENT_SEMESTER:'当前学期', NEW_SEMESTER:'新建学期', CLEAR_SEMESTER:'清空当前学期课表', CONFIRM_CLEAR_SEMESTER:'确定清空当前学期的课程和作业吗？', SEMESTER_NAME:'学期名称', START_DATE:'第一周周一', WEEKS:'总周数', SAVE_SEMESTER:'保存学期', WEEK:'第 {{count}} 周', PREVIOUS:'上一周', NEXT:'下一周', ADD_COURSE:'添加课程', IMPORT:'导入 CSV / HTML', SYNC_ALL:'同步到计划', SYNC:'同步', NO_CLASSES:'本周没有课程。', CURRENT:'现在：{{name}}（{{time}}）', FREE_NOW:'当前没有课', NEXT_CLASS:'下一节：{{name}}，{{time}} 开始', NO_NEXT:'今天没有下一节课', SINCE_START:'距离上课还有 {{minutes}} 分钟', UNTIL_END:'距离下课还有 {{minutes}} 分钟', SYNCED:'计划已同步', SYNC_UNSUPPORTED:'当前 SP 版本不支持更新已有任务。', COURSE_NAME:'课程名称', TEACHER:'教师', LOCATION:'地点', WEEKDAY:'星期', START_TIME:'开始时间', END_TIME:'结束时间', START_WEEK:'开始周', END_WEEK:'结束周', PATTERN:'周次模式', CUSTOM_WEEKS:'自定义周次（逗号分隔）', COLOR:'颜色', NOTE:'备注', OBSIDIAN_LINK:'Obsidian 链接', PROJECT:'作业所属项目', NONE:'无', EVERY:'每周', ODD:'单周', EVEN:'双周', CUSTOM:'自定义周次', SAVE:'保存', CANCEL:'取消', EDIT:'编辑', DELETE:'删除', ADD_ASSIGNMENT:'添加作业', ASSIGNMENT_TITLE:'作业标题', DUE_DAY:'截止日期', ESTIMATE:'预计耗时（分钟）', CREATED:'作业任务已创建', SAVED:'课程已保存', CONFIRM_DELETE:'删除这门课程？', IMPORTED:'已导入 {{count}} 门课程', IMPORT_EMPTY:'没有识别到有效的课程行。', SETTINGS:'设置', DENSITY:'界面密度', COMFORTABLE:'舒适', COMPACT:'紧凑', LANGUAGE:'插件语言', LANGUAGE_AUTO:'跟随 SP 语言', ACCENT:'卡片强调色', FOLLOW_THEME:'跟随 SP 主题', BLUE:'蓝色', GREEN:'绿色', ORANGE:'橙色', PURPLE:'紫色', CUSTOM_COLOR:'自定义', CUSTOM_COLOR_VALUE:'自定义卡片颜色', SHOW_WEEKENDS:'显示周末', SETTINGS_SAVED:'设置已保存' }, DAY: { 1:'周一', 2:'周二', 3:'周三', 4:'周四', 5:'周五', 6:'周六', 7:'周日' } }
       };
 Object.assign(LOCAL_TRANSLATIONS.en.UI, { EDIT_SEMESTER:'Edit semester', PASTE_IMPORT:'Paste timetable', EXPORT:'Export', TIMELINE:'Timeline', LIST:'Compact list', HELP:'Help', HELP_TITLE:'Using the timetable', CLOSE:'Close', PASTE_TITLE:'Paste web timetable', PASTE_HINT:'Copy a timetable from your school website and paste it here.', TIME_LABELS:'Timeline time labels', TIME_EACH:'Show on every course', TIME_SHARED:'Merge identical times on the left' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { EDIT_SEMESTER:'编辑学期', PASTE_IMPORT:'粘贴网页课表', EXPORT:'导出', TIMELINE:'时间轴', LIST:'紧凑列表', HELP:'帮助', HELP_TITLE:'使用说明', CLOSE:'关闭', PASTE_TITLE:'粘贴网页课表', PASTE_HINT:'从教务系统复制课表后粘贴到这里。', TIME_LABELS:'时间轴时间显示', TIME_EACH:'每节课上方显示', TIME_SHARED:'相同时间合并到左侧' });
-Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:'Plan', VIEW_TODAY:'Today', TODAY_COURSES:"Today's classes", TODAY_TASKS:"Today's tasks", TODAY_DDL:"Today's deadlines", UPCOMING_EVENTS:'Upcoming events', EVENT:'Course event', EVENT_TYPE:'Event type', ADD_EVENT:'Add event', NO_EVENTS:'Nothing scheduled', EXCEPTION:'Reschedule / cancel', RESET_EXCEPTION:'Use normal schedule', CANCEL_CLASS:'Cancel this class', TASK_PREFIX:'Task title prefix', ADD_TASK:'Add task', OPEN_TASKS:'open tasks', SYNCED_STATUS:'Synced', NOT_SYNCED:'Not synced', OPEN_NOTES:'Open course notes', ACTIONS:'Course actions', CONFLICT_CONFIRM:'This course conflicts with another class in at least one week. Save anyway?', IMPORT_PREVIEW:'Import preview', VALID:'Valid', DUPLICATE:'Duplicate', CONFLICT:'Conflict', INVALID:'Invalid', CORRECTED:'Corrected', MORE:'More' });
-      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { VIEW_TIMETABLE:'课表', VIEW_PLAN:'计划', VIEW_TODAY:'今日', TODAY_COURSES:'今天全部课程', TODAY_TASKS:'今日任务', TODAY_DDL:'今日 DDL', UPCOMING_EVENTS:'即将发生的课程事件', EVENT:'课程事件', EVENT_TYPE:'事件类型', ADD_EVENT:'添加事件', NO_EVENTS:'暂无安排', EXCEPTION:'调课 / 停课', RESET_EXCEPTION:'恢复正常课表', CANCEL_CLASS:'本周停课', TASK_PREFIX:'默认任务标题前缀', ADD_TASK:'添加任务', OPEN_TASKS:'个未完成任务', SYNCED_STATUS:'已同步', NOT_SYNCED:'未同步', OPEN_NOTES:'打开课程笔记', ACTIONS:'课程操作', CONFLICT_CONFIRM:'这门课程至少在一周内与其他课程时间冲突，仍然保存吗？', IMPORT_PREVIEW:'导入预览', VALID:'有效', DUPLICATE:'重复', CONFLICT:'冲突', INVALID:'无效', CORRECTED:'已修正', MORE:'更多' });
+Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:'Plan', VIEW_TODAY:'Today', TODAY_COURSES:"Today's classes", TODAY_TASKS:"Today's tasks", TODAY_DDL:"Today's deadlines", UPCOMING_EVENTS:'Upcoming events', EVENT:'Course event', EVENT_TYPE:'Event type', ADD_EVENT:'Add event', NO_EVENTS:'Nothing scheduled', EXCEPTION:'Reschedule / cancel', RESET_EXCEPTION:'Use normal schedule', CANCEL_CLASS:'Cancel this class', TASK_PREFIX:'Task title prefix', ADD_TASK:'Add task', OPEN_TASKS:'open tasks', SYNCED_STATUS:'Synced', NOT_SYNCED:'Not synced', OPEN_NOTES:'Open course notes', CONFLICT_CONFIRM:'This course conflicts with another class in at least one week. Save anyway?', IMPORT_PREVIEW:'Import preview', VALID:'Valid', DUPLICATE:'Duplicate', CONFLICT:'Conflict', INVALID:'Invalid', CORRECTED:'Corrected', MORE:'More' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { VIEW_TIMETABLE:'课表', VIEW_PLAN:'计划', VIEW_TODAY:'今日', TODAY_COURSES:'今天全部课程', TODAY_TASKS:'今日任务', TODAY_DDL:'今日 DDL', UPCOMING_EVENTS:'即将发生的课程事件', EVENT:'课程事件', EVENT_TYPE:'事件类型', ADD_EVENT:'添加事件', NO_EVENTS:'暂无安排', EXCEPTION:'调课 / 停课', RESET_EXCEPTION:'恢复正常课表', CANCEL_CLASS:'本周停课', TASK_PREFIX:'默认任务标题前缀', ADD_TASK:'添加任务', OPEN_TASKS:'个未完成任务', SYNCED_STATUS:'已同步', NOT_SYNCED:'未同步', OPEN_NOTES:'打开课程笔记', CONFLICT_CONFIRM:'这门课程至少在一周内与其他课程时间冲突，仍然保存吗？', IMPORT_PREVIEW:'导入预览', VALID:'有效', DUPLICATE:'重复', CONFLICT:'冲突', INVALID:'无效', CORRECTED:'已修正', MORE:'更多' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { OFFICE_UNSUPPORTED:'This device cannot decompress Office files. Try CSV, HTML, or web paste.', XLSX_NO_SHEET:'No timetable worksheet was found in this workbook.', DOCX_IMAGE_ONLY:'This Word file appears to contain only a timetable image. OCR is not supported.', DOCX_NO_TABLE:'No timetable table or supported course paragraphs were found in this Word file.' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { OFFICE_UNSUPPORTED:'当前设备无法解压 Office 文件，请改用 CSV、HTML 或网页粘贴。', XLSX_NO_SHEET:'工作簿中没有找到可识别的课表工作表。', DOCX_IMAGE_ONLY:'Word 文件似乎只有课表图片；目前不支持 OCR。', DOCX_NO_TABLE:'Word 文件中没有找到可识别的课表表格或课程段落。' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { SORT_BY:'Sort by', SORT_TIME:'Time', SORT_NAME:'Name' });
@@ -247,6 +249,8 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { TAGS:'默认标签', STATS_VISIBILITY:'显示统计项', STAT_WEEK_HOURS:'本周上课时长', STAT_TODAY_HOURS:'今日上课时长', STAT_EARLY:'早八次数', STAT_LATE:'晚课次数', STAT_PROGRESS:'学期进度', STAT_FREE:'本周最长空档', STAT_BUSY:'本周最忙两小时' });
       Object.assign(LOCAL_TRANSLATIONS.en.UI, { STATUS:'Status', SECTIONS:'{{count}} sections', PREVIEW_SUMMARY:'{{valid}} valid · {{corrected}} corrected · {{invalid}} invalid', EXPORT_JSON:'JSON backup', WORKSPACE_VIEWS:'Workspace views', DISPLAY_MODE:'Display mode', WEEK_STATS:'Week statistics', SP_TASK_ID:'SP task ID', EVENT_ASSIGNMENT:'Assignment', EVENT_EXAM:'Exam', EVENT_QUIZ:'Quiz', EVENT_REPORT:'Report', EVENT_PRESENTATION:'Presentation', EVENT_CUSTOM:'Custom' });
       Object.assign(LOCAL_TRANSLATIONS.zh.UI, { STATUS:'状态', SECTIONS:'{{count}} 个时段', PREVIEW_SUMMARY:'有效 {{valid}} · 已修正 {{corrected}} · 无效 {{invalid}}', EXPORT_JSON:'JSON 备份', WORKSPACE_VIEWS:'工作台视图', DISPLAY_MODE:'显示方式', WEEK_STATS:'本周统计', SP_TASK_ID:'SP 任务 ID', EVENT_ASSIGNMENT:'作业', EVENT_EXAM:'考试', EVENT_QUIZ:'小测', EVENT_REPORT:'报告', EVENT_PRESENTATION:'展示', EVENT_CUSTOM:'其他' });
+      Object.assign(LOCAL_TRANSLATIONS.en.UI, { WEEKDAYS:'Weekdays (select one or more)' });
+      Object.assign(LOCAL_TRANSLATIONS.zh.UI, { WEEKDAYS:'星期（可多选）' });
       const lookup = (object, key) => key.split('.').reduce((value, part) => value?.[part], object);
       const interpolate = (text, params = {}) => text.replace(/\{\{(\w+)\}\}/g, (match, key) => key in params ? String(params[key]) : match);
       const localText = (key, params) => { const language = settings.language === 'auto' ? (/^zh/i.test(PluginAPI.cfg?.lang?.code || navigator.language) ? 'zh' : 'en') : settings.language; return interpolate(lookup(LOCAL_TRANSLATIONS[language], key) || lookup(LOCAL_TRANSLATIONS.en, key) || key, params); };
@@ -340,23 +344,29 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
         return true;
       };
       const exceptionFor = (courseId, week) => state.exceptions.find((item) => item.courseId === courseId && Number(item.week) === Number(week)) || null;
-      function courseForWeek(course, week) {
-        if (!isActive(course, week)) return null;
+      // A course meets on every selected weekday at the same time. `weekday` keeps
+      // the first selected day so older plugin builds read stored data as before.
+      const courseWeekdays = (course) => (Array.isArray(course.weekdays) && course.weekdays.length ? course.weekdays : [course.weekday]).map(Number).filter((day) => day > 0);
+      function courseSessions(course, week) {
+        if (!isActive(course, week)) return [];
         const exception = exceptionFor(course.id, week);
-        if (exception?.cancelled) return null;
-        return exception ? { ...course, weekday: exception.weekday || course.weekday, startTime: exception.startTime || course.startTime, endTime: exception.endTime || course.endTime, location: exception.location || course.location, teacher: exception.teacher || course.teacher, exception: true } : course;
+        if (exception?.cancelled) return [];
+        const overrides = exception ? { startTime: exception.startTime || course.startTime, endTime: exception.endTime || course.endTime, location: exception.location || course.location, teacher: exception.teacher || course.teacher, exception: true } : null;
+        const days = exception ? [Number(exception.weekday) || courseWeekdays(course)[0]] : courseWeekdays(course);
+        return days.map((weekday) => ({ ...course, ...overrides, weekday, weekdays: [weekday] }));
       }
       const courseNameKey = (course) => String(course.name || '').normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
       function resolvedCoursesForWeek(courses, week) {
-        const resolved = courses.map((course) => courseForWeek(course, week)).filter(Boolean);
+        const resolved = courses.flatMap((course) => courseSessions(course, week));
         const retained = [];
         const duration = (course) => minutesOfDay(course.endTime) - minutesOfDay(course.startTime);
         for (const course of [...resolved].sort((a, b) => duration(b) - duration(a))) {
           if (retained.some((other) => courseNameKey(course) && courseNameKey(course) === courseNameKey(other) && Number(course.weekday) === Number(other.weekday) && minutesOfDay(course.startTime) < minutesOfDay(other.endTime) && minutesOfDay(other.startTime) < minutesOfDay(course.endTime))) continue;
           retained.push(course);
         }
-        const ids = new Set(retained.map((course) => course.id));
-        return resolved.filter((course) => ids.has(course.id));
+        // Retain the resolved occurrences themselves: one stored course can now
+        // resolve to several weekday occurrences, so ids no longer identify one.
+        return retained;
       }
       const coursesForWeek = (week) => resolvedCoursesForWeek(state.courses, week);
       function taskCourse(task) {
@@ -399,7 +409,7 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
       function sortedCourseGroups() {
         const groups = courseGroups();
         if (settings.courseSort === 'name') return groups.sort((a, b) => a.name.localeCompare(b.name, settings.language === 'zh' ? 'zh' : 'en') || a.key.localeCompare(b.key));
-        const firstTime = (group) => Math.min(...group.courses.map((course) => (Number(course.weekday) - 1) * 1440 + minutesOfDay(course.startTime)));
+        const firstTime = (group) => Math.min(...group.courses.map((course) => (courseWeekdays(course)[0] - 1) * 1440 + minutesOfDay(course.startTime)));
         return groups.sort((a, b) => firstTime(a) - firstTime(b) || a.name.localeCompare(b.name) || a.key.localeCompare(b.key));
       }
       function visibleWeekdays() {
@@ -421,7 +431,7 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
         return Math.floor((day.getTime() - start.getTime()) / 604800000) + 1;
       }
       function occurrenceFor(course, week) {
-        const resolved = courseForWeek(course, week);
+        const resolved = courseSessions(course, week)[0];
         if (!state.semester.startDate || !resolved) return null;
         const date = new Date(`${state.semester.startDate}T00:00:00`);
         date.setDate(date.getDate() + (week - 1) * 7 + Number(resolved.weekday) - 1);
@@ -433,8 +443,8 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
         if (!state.semester.startDate) return null;
         const firstWeek = Math.max(1, semesterWeek(now) || 1);
         for (let week = firstWeek; week <= state.semester.weeks; week++) {
-          const occurrence = occurrenceFor(course, week);
-          if (occurrence && occurrence.start > now) return occurrence;
+          const upcoming = courseSessions(course, week).map((session) => occurrenceFor(session, week)).filter((occurrence) => occurrence && occurrence.start > now).sort((a, b) => a.start - b.start);
+          if (upcoming.length) return upcoming[0];
         }
         return null;
       }
@@ -501,7 +511,7 @@ Object.assign(LOCAL_TRANSLATIONS.en.UI, { VIEW_TIMETABLE:'Timetable', VIEW_PLAN:
       }
       function renderHelp() {
         const zh = settings.language === 'zh' || (settings.language === 'auto' && /^zh/i.test(PluginAPI.cfg?.lang?.code || navigator.language));
-$('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><li>设置第一周周一</li><li>导入或粘贴课程表</li><li>检查导入预览</li><li>使用课表、今日和计划视图</li><li>可选：同步到 SP</li></ol><h3>支持的导入方式</h3><p>支持粘贴网页课表、XLSX、CSV/TSV、HTML 和 DOCX。Word 优先识别表格课表；图片型 Word 不做 OCR。PDF 和图片暂不是主要支持格式。</p><h3>周次与星期</h3><p><code>1周</code>、<code>1~8周</code>、<code>1,3,5周</code>、<code>1~3,5~16周</code>、单周、双周；星期支持周一、星期一、Monday、Mon、月曜日和数字写法。</p><h3>学期管理</h3><p>“第一周周一”是教学周计算基准。每个学期独立保存课程、事件、调课和任务关联。清空当前学期不会删除 SP 任务。</p><h3>SP 同步</h3><p>同步课程会创建一个 SP 任务并保存对应关系；修改课程后再次同步会更新该任务。插件也会读取现有 SP 任务，通过 courseId、projectId、备注和标题识别所属课程。</p><h3>导出</h3><p>ICS 用于日历；CSV 用于 Excel 查看和交换；JSON 保存完整插件数据。</p><h3>移动端与同步</h3><p>每台设备安装一次插件；数据随后通过 SP 同步。</p><h3>常见问题</h3><p>识别失败时检查星期、时间和周次；图片型 Word 不支持。冲突可确认保存，调课/停课只影响指定周。</p>` : `<h3>Quick start</h3><ol><li>Create a semester</li><li>Set its first Monday</li><li>Import or paste a timetable</li><li>Review the import preview</li><li>Use Timetable, Today, and Plan</li><li>Optionally sync to SP</li></ol><h3>Imports</h3><p>Paste web timetables or import XLSX, CSV/TSV, HTML, and DOCX. Word table timetables are preferred; image-only Word files are not OCRed. PDF and images are not primary formats.</p><h3>Weeks and weekdays</h3><p>Supports <code>1 week</code>, <code>1-8 weeks</code>, <code>1,3,5 weeks</code>, mixed ranges, odd/even weeks; weekdays include Monday, Mon, 周一, 月曜日, and numeric forms.</p><h3>Semesters</h3><p>The first Monday is the teaching-week baseline. Each semester keeps separate courses, events, exceptions, and task links. Clearing a semester never deletes SP tasks.</p><h3>SP sync</h3><p>Sync creates a mapped SP task; syncing again after edits updates it. Existing SP tasks are associated by course ID, project, notes, and title.</p><h3>Exports</h3><p>ICS is for calendars, CSV for spreadsheets/exchange, and JSON for a complete backup.</p><h3>Mobile and sync</h3><p>Install once per device; data then follows SP sync.</p><h3>FAQ</h3><p>Check weekday, time, and week rules when parsing fails. Image-only Word is unsupported. Conflicts may be saved; exceptions affect one week.</p>`;
+$('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><li>设置第一周周一</li><li>导入或粘贴课程表</li><li>检查导入预览</li><li>使用课表、今日和计划视图</li><li>可选：同步到 SP</li></ol><h3>支持的导入方式</h3><p>支持粘贴网页课表、XLSX、CSV/TSV、HTML 和 DOCX。Word 优先识别表格课表；图片型 Word 不做 OCR。PDF 和图片暂不是主要支持格式。</p><h3>周次与星期</h3><p><code>1周</code>、<code>1~8周</code>、<code>1,3,5周</code>、<code>1~3,5~16周</code>、单周、双周；星期支持周一、星期一、Monday、Mon、月曜日和数字写法。一门课一周上多天时多选「星期」，或在导入表里写成 周一,周三；调课与停课作用于整周。</p><h3>学期管理</h3><p>“第一周周一”是教学周计算基准。每个学期独立保存课程、事件、调课和任务关联。清空当前学期不会删除 SP 任务。</p><h3>SP 同步</h3><p>同步课程会创建一个 SP 任务并保存对应关系；修改课程后再次同步会更新该任务。插件也会读取现有 SP 任务，通过 courseId、projectId、备注和标题识别所属课程。</p><h3>导出</h3><p>ICS 用于日历；CSV 用于 Excel 查看和交换；JSON 保存完整插件数据。</p><h3>移动端与同步</h3><p>每台设备安装一次插件；数据随后通过 SP 同步。</p><h3>常见问题</h3><p>识别失败时检查星期、时间和周次；图片型 Word 不支持。冲突可确认保存，调课/停课只影响指定周。</p>` : `<h3>Quick start</h3><ol><li>Create a semester</li><li>Set its first Monday</li><li>Import or paste a timetable</li><li>Review the import preview</li><li>Use Timetable, Today, and Plan</li><li>Optionally sync to SP</li></ol><h3>Imports</h3><p>Paste web timetables or import XLSX, CSV/TSV, HTML, and DOCX. Word table timetables are preferred; image-only Word files are not OCRed. PDF and images are not primary formats.</p><h3>Weeks and weekdays</h3><p>Supports <code>1 week</code>, <code>1-8 weeks</code>, <code>1,3,5 weeks</code>, mixed ranges, odd/even weeks; weekdays include Monday, Mon, 周一, 月曜日, and numeric forms. A course can meet several days a week: select them here, or import a list such as <code>Mon,Wed</code>. Rescheduling and cancellation apply to the whole course that week.</p><h3>Semesters</h3><p>The first Monday is the teaching-week baseline. Each semester keeps separate courses, events, exceptions, and task links. Clearing a semester never deletes SP tasks.</p><h3>SP sync</h3><p>Sync creates a mapped SP task; syncing again after edits updates it. Existing SP tasks are associated by course ID, project, notes, and title.</p><h3>Exports</h3><p>ICS is for calendars, CSV for spreadsheets/exchange, and JSON for a complete backup.</p><h3>Mobile and sync</h3><p>Install once per device; data then follows SP sync.</p><h3>FAQ</h3><p>Check weekday, time, and week rules when parsing fails. Image-only Word is unsupported. Conflicts may be saved; exceptions affect one week.</p>`;
       }
 
       function timelineLayout(courses) {
@@ -600,7 +610,7 @@ $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><
         $('courses').innerHTML = (await Promise.all(sortedCourseGroups().map(async (group) => {
           const course = group.representative;
           const sections = group.courses.filter((entry) => visibleSectionIds.has(entry.id));
-          const details = await Promise.all(sections.map(async (entry) => `${await tr(`DAY.${entry.weekday}`)} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`));
+          const details = sections.map((entry) => `${courseWeekdays(entry).map((day) => localText(`DAY.${day}`)).join('/')} ${entry.startTime}–${entry.endTime} · ${entry.location || ''} · ${entry.teacher || ''}`);
           const tasks = [...new Map(group.courses.flatMap(openTasksForCourse).map((task) => [task.id, task])).values()];
           const synced = group.courses.some((entry) => entry.taskId);
           const noteUrl = safeObsidianUrl(course.obsidianLink);
@@ -619,7 +629,7 @@ $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><
         $('course-name').value = course?.name || '';
         $('teacher').value = course?.teacher || '';
         $('location').value = course?.location || '';
-        $('weekday').value = course?.weekday || '1';
+        setSelectedWeekdays('weekday', course ? courseWeekdays(course) : [1]);
         $('start-time').value = course?.startTime || '08:00';
         $('end-time').value = course?.endTime || '09:40';
         $('start-week').value = course?.startWeek || 1;
@@ -639,7 +649,7 @@ $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><
       function taskForCourse(course) {
         const now = new Date();
         const occurrence = nextOccurrence(course, new Date(now.getTime() - 60000));
-        const fallback = new Date(now); fallback.setDate(fallback.getDate() + (Number(course.weekday) - (fallback.getDay() || 7) + 7) % 7);
+        const fallback = new Date(now); fallback.setDate(fallback.getDate() + (courseWeekdays(course)[0] - (fallback.getDay() || 7) + 7) % 7);
         const dueDate = occurrence?.start || fallback;
         const duration = Math.max(0, minutesOfDay(course.endTime) - minutesOfDay(course.startTime)) * 60000;
         return { title: `${course.taskPrefix || '[Course]'} ${course.name} ${course.startTime}`.trim(), projectId: course.projectId, tagIds: course.tagIds || [], notes: `Course: ${course.name}\nCourse ID: ${course.id}\nTime: ${course.startTime}-${course.endTime}\nLocation: ${course.location || ''}\nTeacher: ${course.teacher || ''}`, dueDay: localDate(dueDate), timeEstimate: duration };
@@ -778,9 +788,10 @@ $('help-copy').innerHTML = zh ? `<h3>快速开始</h3><ol><li>新建学期</li><
       $('course-form').onsubmit = async (event) => {
         event.preventDefault();
         const old = state.courses.find((course) => course.id === $('course-id').value);
+        const weekdays = selectedWeekdays('weekday');
         const course = {
           id: old?.id || uid(), taskId: old?.taskId || null, name: $('course-name').value.trim(), teacher: $('teacher').value.trim(), location: $('location').value.trim(),
-          weekday: Number($('weekday').value), startTime: $('start-time').value, endTime: $('end-time').value,
+          weekday: weekdays[0], weekdays, startTime: $('start-time').value, endTime: $('end-time').value,
           startWeek: Number($('start-week').value), endWeek: Number($('end-week').value), pattern: $('pattern').value,
           customWeeks: $('custom-weeks').value.split(',').map(Number).filter(Number.isInteger), color: $('color').value,
           projectId: $('project').value || null, note: $('note').value.trim(), obsidianLink: $('obsidian-link').value.trim() || null, taskPrefix: $('task-prefix').value.trim() || '[Course]', tagIds: tags.length ? Array.from(document.querySelectorAll('[data-course-tag]:checked')).map((input) => input.dataset.courseTag) : old?.tagIds || [],
@@ -830,7 +841,7 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
         state.events = old ? state.events.map((entry) => entry.id === item.id ? item : entry) : [...state.events, item]; await save(); $('event-dialog').close(); await render();
       };
       function openException(course) {
-        const current = exceptionFor(course.id, selectedWeek); $('exception-course-id').value = course.id; $('exception-week').value = current?.week || selectedWeek; $('exception-cancelled').checked = current?.cancelled || false; $('exception-weekday').innerHTML = $('weekday').innerHTML; $('exception-weekday').value = current?.weekday || course.weekday; $('exception-start').value = current?.startTime || course.startTime; $('exception-end').value = current?.endTime || course.endTime; $('exception-location').value = current?.location || course.location || ''; $('exception-teacher').value = current?.teacher || course.teacher || ''; $('exception-dialog').showModal();
+        const current = exceptionFor(course.id, selectedWeek); $('exception-course-id').value = course.id; $('exception-week').value = current?.week || selectedWeek; $('exception-cancelled').checked = current?.cancelled || false; $('exception-weekday').innerHTML = $('weekday').innerHTML; $('exception-weekday').value = current?.weekday || courseWeekdays(course)[0]; $('exception-start').value = current?.startTime || course.startTime; $('exception-end').value = current?.endTime || course.endTime; $('exception-location').value = current?.location || course.location || ''; $('exception-teacher').value = current?.teacher || course.teacher || ''; $('exception-dialog').showModal();
       }
       $('exception-cancel').onclick = () => $('exception-dialog').close();
       $('exception-reset').onclick = async () => { const courseId = $('exception-course-id').value, week = Number($('exception-week').value); state.exceptions = state.exceptions.filter((entry) => !(entry.courseId === courseId && Number(entry.week) === week)); await save(); $('exception-dialog').close(); await render(); };
@@ -841,7 +852,7 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
 
       const headerAliases = {
         name: ['name', 'course', 'course name', '课程', '课程名称'], teacher: ['teacher', '教师', '老师'], location: ['location', 'room', '地点', '教室'],
-        weekday: ['weekday', 'day', '星期', '周几'], startTime: ['starttime', 'start time', '开始时间'], endTime: ['endtime', 'end time', '结束时间'],
+        weekday: ['weekday', 'day', '星期', '周几'], weekdays: ['weekdays', 'week days', '星期列表'], startTime: ['starttime', 'start time', '开始时间'], endTime: ['endtime', 'end time', '结束时间'],
         startWeek: ['startweek', 'start week', '开始周'], endWeek: ['endweek', 'end week', '结束周'], pattern: ['pattern', 'week pattern', '周次模式', '单双周'],
         customWeeks: ['customweeks', 'custom weeks', '自定义周次'], color: ['color', '颜色'], note: ['note', '备注'], obsidianLink: ['obsidianlink', 'obsidian link', 'obsidian链接'], project: ['project', '项目'],
       };
@@ -1088,7 +1099,6 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
         }
         return courses;
       }
-      const gridToCourses = parseTimetable;
       function weekdayNumber(value) {
         const parsed = weekdayFromText(value);
         const numeric = Number(String(value || '').trim());
@@ -1113,7 +1123,7 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
           const project = projects.find((item) => item.title.toLowerCase() === String(source.project || '').trim().toLowerCase());
           return {
             id: uid(), name: String(source.name || '').trim(), teacher: String(source.teacher || '').trim(), location: String(source.location || '').trim(),
-            weekday: weekdayNumber(source.weekday), startTime: String(source.startTime || '08:00').trim(), endTime: String(source.endTime || '09:40').trim(),
+            weekday: String(source.weekday || '').trim() || null, startTime: String(source.startTime || '08:00').trim(), endTime: String(source.endTime || '09:40').trim(),
             startWeek: Number(source.startWeek) || 1, endWeek: Number(source.endWeek) || state.semester.weeks, pattern: normalizePattern(source.pattern),
             customWeeks: String(source.customWeeks || '').split(/[,，\s]+/).map(Number).filter((week) => Number.isInteger(week) && week > 0), color: /^#[0-9a-f]{6}$/i.test(source.color) ? source.color : '#3f51b5',
             projectId: project?.id || null, note: String(source.note || '').trim(), obsidianLink: String(source.obsidianLink || '').trim() || null,
@@ -1133,7 +1143,9 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
         let corrected = 0, skipped = 0; const invalid = [];
         const courses = imported.map((course) => {
           const original = JSON.stringify(course);
-          const weekday = weekdayNumber(course.weekday);
+          // A weekday cell holds one day or a separated list (`周一,周三`, `1;3`).
+          const weekdays = String(course.weekdays?.length ? course.weekdays : course.weekday || '').split(/[,，、;；/]+/).map((part) => weekdayNumber(part)).filter(Boolean).sort((a, b) => a - b);
+          const weekday = weekdays[0] || null;
           const startTime = normalizeTime(course.startTime);
           const endTime = normalizeTime(course.endTime);
           const name = String(course.name || '').replace(/\s+/g, ' ').trim().slice(0, 160);
@@ -1144,7 +1156,7 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
           const maxWeeks = Math.max(1, Number(state.semester.weeks) || 18);
           startWeek = Math.min(startWeek, maxWeeks); endWeek = Math.min(endWeek, maxWeeks);
           const customWeeks = Array.from(new Set((course.customWeeks || []).map(Number).filter((week) => Number.isInteger(week) && week >= startWeek && week <= endWeek))).sort((a, b) => a - b);
-          const normalized = { ...course, name, weekday, startTime, endTime, startWeek, endWeek, customWeeks, pattern: course.pattern === 'custom' && !customWeeks.length ? 'every' : course.pattern };
+          const normalized = { ...course, name, weekday, weekdays, startTime, endTime, startWeek, endWeek, customWeeks, pattern: course.pattern === 'custom' && !customWeeks.length ? 'every' : course.pattern };
           if (JSON.stringify(normalized) !== original) { corrected++; normalized._importCorrected = true; }
           return normalized;
         }).filter(Boolean);
@@ -1299,15 +1311,16 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
       }
       function renderImportPreview() {
         if (!pendingImport) return;
-        const fingerprints = new Set(state.courses.map((course) => `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase()));
+        const fingerprint = (course) => `${course.name}|${courseWeekdays(course).join('+')}|${course.startTime}|${course.endTime}`.toLowerCase();
+        const fingerprints = new Set(state.courses.map(fingerprint));
         const allCourses = [...state.courses, ...pendingImport.entries.filter((entry) => !entry.invalid).map((entry) => entry.course)];
-        pendingImport.entries.forEach((entry) => { if (entry.invalid) return; const course = entry.course, fingerprint = `${course.name}|${course.weekday}|${course.startTime}|${course.endTime}`.toLowerCase(); entry.duplicate = fingerprints.has(fingerprint); if (entry.duplicate) entry.selected = false; fingerprints.add(fingerprint); entry.conflict = Array.from({ length: state.semester.weeks }, (_, index) => index + 1).some((week) => conflictIds(allCourses, week).has(course.id)); });
+        pendingImport.entries.forEach((entry) => { if (entry.invalid) return; const course = entry.course, key = fingerprint(course); entry.duplicate = fingerprints.has(key); if (entry.duplicate) entry.selected = false; fingerprints.add(key); entry.conflict = Array.from({ length: state.semester.weeks }, (_, index) => index + 1).some((week) => conflictIds(allCourses, week).has(course.id)); });
         $('import-summary').textContent = localText('UI.PREVIEW_SUMMARY', { valid: pendingImport.entries.filter((entry) => !entry.invalid).length, corrected: pendingImport.corrected, invalid: pendingImport.entries.filter((entry) => entry.invalid).length });
-        $('import-preview-body').innerHTML = pendingImport.entries.map((entry, index) => { const course = entry.course; const status = entry.invalid ? 'INVALID' : entry.duplicate ? 'DUPLICATE' : entry.conflict ? 'CONFLICT' : course._importCorrected ? 'CORRECTED' : 'VALID'; const day = course.weekday ? localText(`DAY.${course.weekday}`) : '—'; const statusText = localText(`UI.${status}`) || status; return `<tr class="${entry.invalid ? 'danger' : entry.conflict || entry.duplicate ? 'warning' : ''}"><td><label><input type="checkbox" data-import-index="${index}" ${entry.selected ? 'checked' : ''} ${entry.invalid || entry.duplicate ? 'disabled' : ''} />${esc(course.name || '—')}</label></td><td>${esc(day)}</td><td>${esc(course.startTime || '—')}–${esc(course.endTime || '—')}</td><td>${esc(course.startWeek || '—')}–${esc(course.endWeek || '—')}</td><td>${esc(course.teacher || '')}</td><td>${esc(course.location || '')}</td><td>${esc(statusText)} <button type="button" class="plain" data-preview-edit="${index}">${esc(localText('UI.EDIT'))}</button></td></tr>`; }).join('');
+        $('import-preview-body').innerHTML = pendingImport.entries.map((entry, index) => { const course = entry.course; const status = entry.invalid ? 'INVALID' : entry.duplicate ? 'DUPLICATE' : entry.conflict ? 'CONFLICT' : course._importCorrected ? 'CORRECTED' : 'VALID'; const days = courseWeekdays(course); const day = days.length ? days.map((value) => localText(`DAY.${value}`)).join('/') : '—'; const statusText = localText(`UI.${status}`) || status; return `<tr class="${entry.invalid ? 'danger' : entry.conflict || entry.duplicate ? 'warning' : ''}"><td><label><input type="checkbox" data-import-index="${index}" ${entry.selected ? 'checked' : ''} ${entry.invalid || entry.duplicate ? 'disabled' : ''} />${esc(course.name || '—')}</label></td><td>${esc(day)}</td><td>${esc(course.startTime || '—')}–${esc(course.endTime || '—')}</td><td>${esc(course.startWeek || '—')}–${esc(course.endWeek || '—')}</td><td>${esc(course.teacher || '')}</td><td>${esc(course.location || '')}</td><td>${esc(statusText)} <button type="button" class="plain" data-preview-edit="${index}">${esc(localText('UI.EDIT'))}</button></td></tr>`; }).join('');
       }
-      $('import-preview-body').onclick = (event) => { const button = event.target.closest('[data-preview-edit]'); if (!button || !pendingImport) return; capturePreviewSelection(); const index = Number(button.dataset.previewEdit), course = pendingImport.entries[index].course; $('import-edit-index').value = index; $('import-edit-name').value = course.name || ''; $('import-edit-weekday').innerHTML = $('weekday').innerHTML; $('import-edit-weekday').value = course.weekday || 1; $('import-edit-start').value = normalizeTime(course.startTime) || ''; $('import-edit-end').value = normalizeTime(course.endTime) || ''; $('import-edit-start-week').value = course.startWeek || 1; $('import-edit-end-week').value = course.endWeek || state.semester.weeks; $('import-edit-teacher').value = course.teacher || ''; $('import-edit-location').value = course.location || ''; $('import-edit-dialog').showModal(); };
+      $('import-preview-body').onclick = (event) => { const button = event.target.closest('[data-preview-edit]'); if (!button || !pendingImport) return; capturePreviewSelection(); const index = Number(button.dataset.previewEdit), course = pendingImport.entries[index].course; $('import-edit-index').value = index; $('import-edit-name').value = course.name || ''; $('import-edit-weekday').innerHTML = $('weekday').innerHTML; setSelectedWeekdays('import-edit-weekday', courseWeekdays(course)); $('import-edit-start').value = normalizeTime(course.startTime) || ''; $('import-edit-end').value = normalizeTime(course.endTime) || ''; $('import-edit-start-week').value = course.startWeek || 1; $('import-edit-end-week').value = course.endWeek || state.semester.weeks; $('import-edit-teacher').value = course.teacher || ''; $('import-edit-location').value = course.location || ''; $('import-edit-dialog').showModal(); };
       $('import-edit-cancel').onclick = () => $('import-edit-dialog').close();
-      $('import-edit-form').onsubmit = (event) => { event.preventDefault(); if (!pendingImport) return; const entry = pendingImport.entries[Number($('import-edit-index').value)]; const edited = { ...entry.course, name: $('import-edit-name').value, weekday: Number($('import-edit-weekday').value), startTime: $('import-edit-start').value, endTime: $('import-edit-end').value, startWeek: Number($('import-edit-start-week').value), endWeek: Number($('import-edit-end-week').value), teacher: $('import-edit-teacher').value, location: $('import-edit-location').value }; const result = validateImportedCourses([edited]); if (!result.courses.length) return; entry.course = result.courses[0]; entry.invalid = false; entry.selected = true; $('import-edit-dialog').close(); renderImportPreview(); };
+      $('import-edit-form').onsubmit = (event) => { event.preventDefault(); if (!pendingImport) return; const entry = pendingImport.entries[Number($('import-edit-index').value)]; const edited = { ...entry.course, name: $('import-edit-name').value, weekdays: selectedWeekdays('import-edit-weekday'), weekday: null, startTime: $('import-edit-start').value, endTime: $('import-edit-end').value, startWeek: Number($('import-edit-start-week').value), endWeek: Number($('import-edit-end-week').value), teacher: $('import-edit-teacher').value, location: $('import-edit-location').value }; const result = validateImportedCourses([edited]); if (!result.courses.length) return; entry.course = result.courses[0]; entry.invalid = false; entry.selected = true; $('import-edit-dialog').close(); renderImportPreview(); };
       $('import-preview-cancel').onclick = () => { pendingImport = null; $('import-preview-dialog').close(); };
       $('import-preview-form').onsubmit = async (event) => {
         event.preventDefault(); if (!pendingImport) return;
@@ -1378,9 +1391,14 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
         if (!state.semester.startDate) return;
         const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Super Productivity//Study Courses//EN'];
         for (const course of state.courses) for (let week = course.startWeek; week <= course.endWeek; week++) {
-          if (!coursesForWeek(week).some((entry) => entry.id === course.id)) continue;
-          const occurrence = occurrenceFor(course, week); if (!occurrence) continue; const resolved = occurrence.course;
-          lines.push('BEGIN:VEVENT', `UID:${course.id}-${week}@super-productivity`, `DTSTART:${icsDate(occurrence.start)}`, `DTEND:${icsDate(occurrence.end)}`, `SUMMARY:${resolved.name.replace(/[,;]/g, ' ')}`, `LOCATION:${String(resolved.location || '').replace(/[,;]/g, ' ')}`, `DESCRIPTION:${String(resolved.teacher || '').replace(/[\r\n,;]/g, ' ')}`, 'END:VEVENT');
+          const multiDay = courseWeekdays(course).length > 1;
+          for (const session of coursesForWeek(week).filter((entry) => entry.id === course.id)) {
+            const occurrence = occurrenceFor(session, week); if (!occurrence) continue; const resolved = occurrence.course;
+            // A single-weekday course keeps its previous UID so an already imported
+            // calendar updates instead of gaining a duplicate event.
+            const uid = `${course.id}-${week}${multiDay ? `-${resolved.weekday}` : ''}@super-productivity`;
+            lines.push('BEGIN:VEVENT', `UID:${uid}`, `DTSTART:${icsDate(occurrence.start)}`, `DTEND:${icsDate(occurrence.end)}`, `SUMMARY:${resolved.name.replace(/[,;]/g, ' ')}`, `LOCATION:${String(resolved.location || '').replace(/[,;]/g, ' ')}`, `DESCRIPTION:${String(resolved.teacher || '').replace(/[\r\n,;]/g, ' ')}`, 'END:VEVENT');
+          }
         }
         state.events.forEach((event) => { if (!event.date) return; const start = new Date(`${event.date}T${event.time || '09:00'}:00`); const end = new Date(start.getTime() + 3600000); lines.push('BEGIN:VEVENT', `UID:event-${event.id}@super-productivity`, `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`, `SUMMARY:${event.title.replace(/[,;]/g, ' ')}`, `DESCRIPTION:${String(event.notes || '').replace(/[\r\n,;]/g, ' ')}`, 'END:VEVENT'); });
         lines.push('END:VCALENDAR');
@@ -1388,7 +1406,7 @@ $('event-course').innerHTML = `<option value="">${localText('UI.NONE')}</option>
       }
       function csvCell(value) { return `"${String(value ?? '').replace(/"/g, '""')}"`; }
       function buildCsv() {
-        const fields = ['name', 'teacher', 'location', 'weekday', 'startTime', 'endTime', 'startWeek', 'endWeek', 'pattern', 'customWeeks', 'color', 'note', 'obsidianLink', 'projectId', 'taskId'];
+        const fields = ['name', 'teacher', 'location', 'weekday', 'weekdays', 'startTime', 'endTime', 'startWeek', 'endWeek', 'pattern', 'customWeeks', 'color', 'note', 'obsidianLink', 'projectId', 'taskId'];
         return [fields.join(','), ...state.courses.map((course) => fields.map((field) => csvCell(Array.isArray(course[field]) ? course[field].join(',') : course[field])).join(','))].join('\r\n');
       }
       $('export').onclick = () => $('export-dialog').showModal();

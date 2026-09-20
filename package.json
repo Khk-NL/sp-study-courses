@@ -1,6 +1,6 @@
 {
   "name": "@scsldr/sp-study-courses",
-  "version": "2.6.3",
+  "version": "2.7.0",
   "packageManager": "pnpm@11.7.0",
   "private": false,
   "scripts": {
